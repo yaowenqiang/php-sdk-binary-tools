@@ -116,18 +116,21 @@ trait FileOps
 		return $ret;
 	}/*}}}*/
 
-	protected function download(string $url, string $dest = NULL) : ?string
-	{
+	protected function download(string $url, string $dest_fn = NULL) : ?string
+	{/*{{{*/
 		$fd = NULL;
-		$ch = curl_init($url);
+		$ch = curl_init();
 
-		if ($dest) {
-			$fd = fopen($dest, "w+");
+		curl_setopt($ch, CURLOPT_URL, $url);
+
+		if ($dest_fn) {
+			$fd = fopen($dest_fn, "w+");
 			curl_setopt($ch, CURLOPT_FILE, $fd); 
 		} else {
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		}
 
+		curl_setopt($ch, CURLOPT_HEADER, false);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
@@ -136,7 +139,7 @@ trait FileOps
 		if (false === $ret) {
 			$err = curl_error();
 			curl_close($ch);
-			if ($dest) {
+			if ($dest_fn) {
 				fclose($fd);
 			}
 			throw new Exception($err);
@@ -144,13 +147,32 @@ trait FileOps
 
 		curl_close($ch);
 
-		if ($dest) {
+		if ($dest_fn) {
 			fclose($fd);
 			return NULL;
 		}
 
 		return $ret;
-	}
+	}/*}}}*/
+
+	/* TODO More detailed zip errors. */
+	protected function unzip(string $zip_fn, string $dest_fn) : void
+	{/*{{{*/
+		$zip = new \ZipArchive;
+
+		$res = $zip->open($zip_fn);
+		if (true !== $res) {
+			throw new Exception("Failed to open '$zip_fn'.");
+		}
+
+		$res = $zip->extractTo($dest_fn);
+		if (true !== $res) {
+			$zip->close();
+			throw new Exception("Failed to unzip '$zip_fn'.");
+		}
+
+		$zip->close();
+	}/*}}}*/
 }
 
 /*
