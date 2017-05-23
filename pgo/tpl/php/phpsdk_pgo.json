@@ -1,0 +1,12 @@
+{
+	"fcgi":
+	{
+		"host": "127.0.0.1",
+		"port": 9000
+	},
+
+	"fcgi:env": {
+		"PHP_FCGI_CHILDREN": 8,
+		"PHP_FCGI_MAX_REQUESTS": 64
+	}
+}
