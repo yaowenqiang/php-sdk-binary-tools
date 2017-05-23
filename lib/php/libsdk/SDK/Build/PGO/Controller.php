@@ -74,6 +74,8 @@ class Controller
 		$nginx = new NGINX($this->conf);
 		$nginx->init();
 
+		$nginx = new MariaDB($this->conf);
+		$nginx->init();
 
 		$this->conf->dump();
 
@@ -114,6 +116,9 @@ class Controller
 		$nginx = new NGINX($this->conf);
 		$nginx->up();
 
+		$nginx = new MariaDB($this->conf);
+		$nginx->up();
+
 		echo "The PGO environment is up.\n";
 	}
 
@@ -126,6 +131,9 @@ class Controller
 		echo "Shutting down PGO environment.\n";
 
 		$nginx = new NGINX($this->conf);
+		$nginx->down();
+
+		$nginx = new MariaDB($this->conf);
 		$nginx->down();
 
 		echo "The PGO environment has been shut down.\n";

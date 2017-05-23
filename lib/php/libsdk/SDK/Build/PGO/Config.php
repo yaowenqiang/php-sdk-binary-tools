@@ -29,12 +29,12 @@ class Config
 				}
 			}
 		} else if (self::MODE_RUN == $mode) {
-			$fn = $this->getWorkDir() . DIRECTORY_SEPARATOR . "phpsdk_pgo.json";
+			$fn = $this->getSectionsFilename();
 			if (!file_exists($fn)) {
 				throw new Exception("Required config doesn't exist under '$fn'.");
 			}
 			$s = file_get_contents($fn);
-			$this->sections = json_decode($fn, true);
+			$this->sections = json_decode($s, true);
 		} else {
 			throw new Exception("Unknown config mode '$mode'.");
 		}
@@ -128,25 +128,28 @@ class Config
 		$it = &$this->sections;
 
 		while (true) {
-			if (!array_key_exists($k, $it)) {
-				$it = array();
-			}
 			$it = &$it[$k];
-
 			if (++$i >= count($args)) break;
-
 			$k = $args[$i];
 		}
 
 		$it = $val;
 	}
 
-	public function dump(string $fn = NULL)
+	public function getSectionsFilename()
 	{
-		$fn = $fn ? $fn : $this->getWorkDir() . DIRECTORY_SEPARATOR . "phpsdk_pgo.json";
+		return $this->getWorkDir() . DIRECTORY_SEPARATOR . "phpsdk_pgo.json";
+	}
+
+	public function dump(string $fn = NULL) : void
+	{
+		$fn = $fn ? $fn : $this->getSectionsFilename();
 
 		$s = json_encode($this->sections, JSON_PRETTY_PRINT);
 
-		file_put_contents($fn, $s);
+		$ret = file_put_contents($fn, $s);
+		if (false === $ret || strlen($s) !== $ret) {
+			throw new Exception("Errors with writing to '$fn'.");
+		}
 	}
 }
