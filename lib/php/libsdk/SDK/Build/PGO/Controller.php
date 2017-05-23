@@ -44,12 +44,37 @@ class Controller
 			$this->down();
 			break;
 		}
-		var_dump($this->conf);
 	}
 
 	public function init()
 	{
-		echo "pgo controller init";
+		echo "Initializing PGO training environment.\n";
+
+		$work_dir = $this->conf->getWorkDir();
+		if (!is_dir($work_dir)) {
+			if (!mkdir($work_dir)) {
+				throw new Exception("Failed to create work dir '$work_dir'.");
+			}
+		}
+
+		$srv_dir = $this->conf->getSrvDir();
+		if (!is_dir($srv_dir)) {
+			if (!mkdir($srv_dir)) {
+				throw new Exception("Failed to create '$srv_dir'.");
+			}
+		}
+
+		$htdocs = $this->conf->getHtdocs();
+		if (!is_dir($htdocs)) {
+			if (!mkdir($htdocs)) {
+				throw new Exception("Failed to create '$htdocs'.");
+			}
+		}
+
+		$nginx = new NGINX($this->conf);
+		$nginx->init();
+
+		echo "Initialization complete.\n";
 	}
 
 	public function isInitialized()

@@ -3,12 +3,16 @@
 namespace SDK\Build\PGO\Server;
 
 use SDK\Build\PGO\Interfaces\Server;
+use SDK\Build\PGO\Config as PGOConfig;
+use SDK\{Config as SDKConfig, Exception};
 
-class MariaDB implements Server\DB
+class MariaDB implements Server
 {
-	public function __construct(string $host, string $port, string $user, string $pw)
-	{
+	protected $conf;
 
+	public function __construct(PGOConfig $conf)
+	{
+		$this->conf = $conf;
 	}
 
 	public function init()
