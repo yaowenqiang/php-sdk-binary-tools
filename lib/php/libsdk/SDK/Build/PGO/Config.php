@@ -21,12 +21,20 @@ class Config
 		$base = getenv("PHP_SDK_ROOT_PATH");
 
 		if (self::MODE_INIT == $mode) {
-
-			$this->sections["nginx"] = parse_ini_file(implode("\\", array($base, "pgo", "tpl", "nginx", "phpsdk_pgo.ini")), true, INI_SCANNER_TYPED);
-			$this->sections["mariadb"] = parse_ini_file(implode("\\", array($base, "pgo", "tpl", "mariadb", "phpsdk_pgo.ini")), true, INI_SCANNER_TYPED);
-			$this->sections["php"] = parse_ini_file(implode("\\", array($base, "pgo", "tpl", "php", "phpsdk_pgo.ini")), true, INI_SCANNER_TYPED);
-		} else if (self::MODE_INIT == $mode) {
-			$this->sections = parse_ini_file(implode("\\", array($base, "pgo", "work", "phpsdk_pgo.ini")), true, INI_SCANNER_TYPED);
+			foreach (array("nginx", "mariadb", "php") as $i) {
+				$fn = $this->getTplDir() . DIRECTORY_SEPARATOR . $i . DIRECTORY_SEPARATOR . "phpsdk_pgo.json";
+				if (file_exists($fn)) {
+					$s = file_get_contents($fn);
+					$this->setSectionItem($i, json_decode($s, true));
+				}
+			}
+		} else if (self::MODE_RUN == $mode) {
+			$fn = $this->getWorkDir() . DIRECTORY_SEPARATOR . "phpsdk_pgo.json";
+			if (!file_exists($fn)) {
+				throw new Exception("Required config doesn't exist under '$fn'.");
+			}
+			$s = file_get_contents($fn);
+			$this->sections = json_decode($fn, true);
 		} else {
 			throw new Exception("Unknown config mode '$mode'.");
 		}
@@ -133,8 +141,12 @@ class Config
 		$it = $val;
 	}
 
-	public function dump()
+	public function dump(string $fn = NULL)
 	{
+		$fn = $fn ? $fn : $this->getWorkDir() . DIRECTORY_SEPARATOR . "phpsdk_pgo.json";
 
+		$s = json_encode($this->sections, JSON_PRETTY_PRINT);
+
+		file_put_contents($fn, $s);
 	}
 }

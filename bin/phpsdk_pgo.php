@@ -81,8 +81,8 @@ function usage(int $code = -1)
 	echo "Commands:", PHP_EOL;
 	echo "  -i --init  Initialize training environment.", PHP_EOL;
 	echo "  -t --train Run training. This involves startup, training and shutdown.", PHP_EOL;
-	/*echo "  -u --up    Startup training environment.", PHP_EOL;
-	echo "  -d --down  Shutdown training environment.", PHP_EOL;*/
+	echo "  -u --up    Startup training environment.", PHP_EOL;
+	echo "  -d --down  Shutdown training environment.", PHP_EOL;
 
 	/*echo "  -p --php-root  PHP binary to train.", PHP_EOL;*/
 

@@ -74,6 +74,9 @@ class Controller
 		$nginx = new NGINX($this->conf);
 		$nginx->init();
 
+
+		$this->conf->dump();
+
 		echo "Initialization complete.\n";
 	}
 
@@ -90,17 +93,28 @@ class Controller
 		if (!$this->isInitialized()) {
 			throw new Exception("PGO training environment is not initialized.");
 		}
-		echo "pgo controller train";
 
+		echo "Starting PGO training.\n";
+		$this->up();
+
+		/* do work here */
+
+		$this->down();
+		echo "PGO training finished.\n";
 	}
 
 	public function up()
 	{
+
 		if (!$this->isInitialized()) {
 			throw new Exception("PGO training environment is not initialized.");
 		}
-		echo "pgo controller up";
+		echo "Starting up PGO environment.\n";
 
+		$nginx = new NGINX($this->conf);
+		$nginx->up();
+
+		echo "The PGO environment is up.\n";
 	}
 
 	public function down()
@@ -109,7 +123,11 @@ class Controller
 			throw new Exception("PGO training environment is not initialized.");
 		}
 		/* XXX check it was started of course. */
-		echo "pgo controller down";
+		echo "Shutting down PGO environment.\n";
 
+		$nginx = new NGINX($this->conf);
+		$nginx->down();
+
+		echo "The PGO environment has been shut down.\n";
 	}
 }

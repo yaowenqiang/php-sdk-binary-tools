@@ -67,7 +67,11 @@ class NGINX implements Server
 			$in
 			
 		);
-		var_dump($out);
+
+		$conf_fn = $this->base . DIRECTORY_SEPARATOR . "conf" . DIRECTORY_SEPARATOR . "nginx.conf";
+		if (!file_put_contents($conf_fn, $out)) {
+			throw new Exception("Couldn't write '$conf_fn'.");
+		}
 	}
 
 	public function init()
@@ -77,17 +81,40 @@ class NGINX implements Server
 			$this->getDist();
 		}
 		$this->setupDist();
+
+		$this->up();
+		$this->down();
+
+
 		echo "NGINX initialization done.\n";
 	}
 
 	public function up()
 	{
-		echo "nginx up";
+		echo "Starting NGINX.\n";
+
+		$cwd = getcwd();
+
+		chdir($this->base);
+
+		$h = popen("start /b .\\nginx.exe", "r");
+		/* XXX error check*/
+		pclose($h);
+
+		chdir($cwd);
 	}
 
 	public function down()
 	{
-		echo "nginx down";
+		echo "Stopping NGINX.\n";
+
+		$cwd = getcwd();
+
+		chdir($this->base);
+
+		exec(".\\nginx.exe -s quit");
+
+		chdir($cwd);
 	}
 }
 
