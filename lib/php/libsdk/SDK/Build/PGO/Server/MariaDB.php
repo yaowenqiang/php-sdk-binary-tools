@@ -2,11 +2,11 @@
 
 namespace SDK\Build\PGO\Server;
 
-use SDK\Build\PGO\Interfaces\Server;
+use SDK\Build\PGO\Interfaces\Server\DB;
 use SDK\Build\PGO\Config as PGOConfig;
 use SDK\{Config as SDKConfig, Exception, FileOps};
 
-class MariaDB implements Server
+class MariaDB implements DB
 {
 	use FileOps;
 
@@ -122,6 +122,25 @@ class MariaDB implements Server
 			sleep(1);
 			exec("taskkill /f /im nginx.exe >nul 2>&1");
 		}
+
+		chdir($cwd);
+	}
+
+	public function query(string $s)
+	{
+		$ret = NULL;
+
+		$cwd = getcwd();
+
+		chdir($this->base);
+
+		$user = $this->conf->getSectionItem("mariadb", "user");
+		$pass = $this->conf->getSectionItem("mariadb", "pass");
+		$host = $this->conf->getSectionItem("mariadb", "host");
+		$port = $this->conf->getSectionItem("mariadb", "port");
+
+		$pass_arg = $pass ? "-p$pass " : "";
+		$ret = shell_exec(".\bin\mysql.exe -u $user $pass_arg -h $host -P $port -e \"$s\"");
 
 		chdir($cwd);
 	}
