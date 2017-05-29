@@ -80,6 +80,16 @@ class Config
 		return $ret;
 	}
 
+	public function getCasesDir(string $name = NULL) : string
+	{
+		$ret = getenv("PHP_SDK_ROOT_PATH") . DIRECTORY_SEPARATOR . "pgo" . DIRECTORY_SEPARATOR . "cases";
+
+		if ($name) {
+			$ret .= DIRECTORY_SEPARATOR . $name;
+		}
+
+		return $ret;
+	}
 
 	public function sectionItemExists(...$args) : bool
 	{

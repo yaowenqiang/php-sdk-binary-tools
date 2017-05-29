@@ -2,18 +2,18 @@
 
 namespace SDK\Build\PGO\Interfaces;
 
-use SDK\Build\PGO\Interfaces\Server;
+use SDK\Build\PGO\Config as PGOConfig;
+
 
 interface TrainingCase
 {
-	public function __construct(Server\DB $srv_db, Server\HTTP $srv_http);
+	public function __construct(PGOConfig $conf);
+
 	/* Initialize the case, run only once on a new checkout. */
 	public function init();
 
 	/* Run training. */
-	public function run();
+	//public function run();
 
-	public function getDbServer() : ?Server\DB;
-	public function getHttpServer() : ?Server\HTTP;
 }
 

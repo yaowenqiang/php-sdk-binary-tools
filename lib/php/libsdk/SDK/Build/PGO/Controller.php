@@ -83,6 +83,26 @@ class Controller
 		$php_fcgi_tcp = new PHP\FCGI($this->conf, true, $maria, $nginx, $this->scenario);
 		$php_fcgi_tcp->init();
 
+		/* Setup training cases. */
+		foreach (glob($this->conf->getCasesDir() . DIRECTORY_SEPARATOR . "*") as $base) {
+			if(!is_dir($base)) {
+				continue;
+			}
+
+			$handler_file = $base . DIRECTORY_SEPARATOR . "TrainingCaseHandler.php";
+			if (!file_exists($handler_file)) {
+				echo "Test case handler isn't present in '$base'.\n";
+				continue;
+			}
+
+			require $handler_file;
+
+			$ns = basename($base);
+
+			$class = "$ns\\TrainingCaseHandler";
+			$handler = new $class($this->conf);
+		}
+
 		$this->conf->dump();
 
 		echo "Initialization complete.\n";
