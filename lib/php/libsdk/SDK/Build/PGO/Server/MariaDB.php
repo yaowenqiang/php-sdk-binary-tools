@@ -104,7 +104,7 @@ class MariaDB implements Server
 		chdir($cwd);
 	}
 
-	public function down() : void
+	public function down(bool $force = false) : void
 	{
 		echo "Stopping MariaDB.\n";
 
@@ -117,6 +117,11 @@ class MariaDB implements Server
 
 		$cmd = sprintf(".\\bin\\mysqladmin.exe -u $user %s--shutdown_timeout=0 shutdown", ($pass ? "-p$pass " : ""));
 		exec($cmd);
+
+		if ($force) {
+			sleep(1);
+			exec("taskkill /f /im nginx.exe >nul 2>&1");
+		}
 
 		chdir($cwd);
 	}

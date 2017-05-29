@@ -60,7 +60,7 @@ class NGINX implements Server
 			array(
 				$this->conf->getSectionItem("nginx", "host"),
 				$this->conf->getSectionItem("nginx", "port"),
-				$this->base . DIRECTORY_SEPARATOR . "html",
+				str_replace("\\", "/", $this->base . DIRECTORY_SEPARATOR . "html"),
 				$this->conf->getSectionItem("php", "fcgi", "host"),
 				$this->conf->getSectionItem("php", "fcgi", "port"),
 			),
@@ -104,7 +104,7 @@ class NGINX implements Server
 		chdir($cwd);
 	}
 
-	public function down() : void
+	public function down(bool $force = false) : void
 	{
 		echo "Stopping NGINX.\n";
 
@@ -113,6 +113,11 @@ class NGINX implements Server
 		chdir($this->base);
 
 		exec(".\\nginx.exe -s quit");
+
+		if ($force) {
+			sleep(1);
+			exec("taskkill /f /im nginx.exe >nul 2>&1");
+		}
 
 		chdir($cwd);
 	}

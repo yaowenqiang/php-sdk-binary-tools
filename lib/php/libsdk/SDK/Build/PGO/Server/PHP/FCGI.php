@@ -75,7 +75,7 @@ class FCGI extends Abstracts\PHP implements Interfaces\PHP
 		proc_close($p);
 	}
 
-	public function down()
+	public function down(bool $force = false)
 	{
 		echo "Stopping PHP FCGI.\n";
 

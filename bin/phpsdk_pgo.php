@@ -6,14 +6,15 @@ use SDK\Config;
 use SDK\Exception;
 use SDK\Build\PGO\Controller;
 
-$sopt = "itudhs:";
-$lopt = array("init", "train", "up", "down", "help", "scenario:",);
+$sopt = "itudhs:f";
+$lopt = array("init", "train", "up", "down", "help", "scenario:", "force",);
 
 $cmd = NULL;
 /* TODO For now we simply check the current php build, this could be extended to take arbitrary binaries. */
 $deps_root = NULL;
 $php_root = NULL;
 $scenario = NULL;
+$force = false;
 
 try {
 	$opt = getopt($sopt, $lopt);
@@ -38,6 +39,10 @@ try {
 		case "s":
 		case "scenario":
 			$scenario = $val;
+			break;
+		case "f":
+		case "force":
+			$force = true;
 			break;
 		case "h": case "help":
 			usage(0);

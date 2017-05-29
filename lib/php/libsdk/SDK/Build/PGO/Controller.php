@@ -131,7 +131,7 @@ class Controller
 		echo "The PGO environment is up.\n";
 	}
 
-	public function down()
+	public function down(bool $force = false)
 	{
 		if (!$this->isInitialized()) {
 			throw new Exception("PGO training environment is not initialized.");
@@ -140,13 +140,13 @@ class Controller
 		echo "Shutting down PGO environment.\n";
 
 		$nginx = new NGINX($this->conf);
-		$nginx->down();
+		$nginx->down($force);
 
 		$maria = new MariaDB($this->conf);
-		$maria->down();
+		$maria->down($force);
 
 		$php_fcgi_tcp = new PHP\FCGI($this->conf, true, $maria, $nginx, $this->scenario);
-		$php_fcgi_tcp->down();
+		$php_fcgi_tcp->down($force);
 
 		echo "The PGO environment has been shut down.\n";
 	}
