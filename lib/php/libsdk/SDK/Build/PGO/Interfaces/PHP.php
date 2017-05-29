@@ -10,7 +10,6 @@ interface PHP
 	public function up() : void;
 public function down() : void;*/
 	public function getVersion(bool $short = false) : string;
-	public function getCmd() : ?string;
 	public function getExeFilename() : string;
 }
 

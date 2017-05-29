@@ -13,9 +13,8 @@ class FCGI extends Abstracts\PHP implements Interfaces\PHP
 	protected $srv_db;
 	protected $srv_http;
 	protected $is_tcp;
-	protected $scenario;
 
-	public function __construct(PGOConfig $conf, bool $is_tcp, Interfaces\Server\DB $srv_db, Interfaces\Server $srv_http, string $scenario)
+	public function __construct(PGOConfig $conf, bool $is_tcp, Interfaces\Server\DB $srv_db, Interfaces\Server $srv_http)
 	{
 		if (!$is_tcp) {
 			throw new Exception("FCGI training other than through TCP is not implemented yet.");
@@ -25,7 +24,7 @@ class FCGI extends Abstracts\PHP implements Interfaces\PHP
 		$this->srv_db = $srv_db;
 		$this->srv_http = $srv_http;
 		$this->is_tcp = $is_tcp;
-		$this->scenario = $scenario;
+		$this->scenario = $conf->getScenario();
 
 		$this->setupPaths();
 	}
@@ -72,8 +71,11 @@ class FCGI extends Abstracts\PHP implements Interfaces\PHP
 
 		/* XXX Log something, etc. */
 		$p = proc_open($cmd, $dummy = array(), $dummy, $this->getRootDir(), $this->createEnv());
-		proc_close($p);
+		$c = proc_close($p);
 
+		if ($c) {
+			throw new Exception("PHP FCGI process exited with code '$c'.");
+		}
 
 		/* XXX for Opcache, setup also file cache. */
 	}

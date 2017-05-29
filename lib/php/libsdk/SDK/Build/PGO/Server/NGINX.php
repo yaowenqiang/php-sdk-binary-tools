@@ -121,5 +121,28 @@ class NGINX implements Server
 
 		chdir($cwd);
 	}
+
+	/* Use only for init phase! */
+	public function addServer(string $part_tpl_fn, array $tpl_vars)
+	{
+		if (!file_exists($part_tpl_fn)) {
+			throw new Exception("Template file '$part_tpl_fn' doesn't exist.");
+		}
+
+		/* We've already did a fresh (re)config, so use the work file now. */
+		$nginx_conf_in = $this->base . DIRECTORY_SEPARATOR . "conf" . DIRECTORY_SEPARATOR . "nginx.conf";
+		$cur_conf = file_get_contents($nginx_conf_in);
+
+		$in = file_get_contents($part_tpl_fn);
+		$out = str_replace($tpl_vars["names"], $tpl_vars["vals"], $in);
+
+		$tpl = "    # PHP_SDK_PGO_NGINX_SERVERS_INC_TPL";
+		$new_conf = str_replace($tpl, "$out\n$tpl", $cur_conf);
+
+		$conf_fn = $this->base . DIRECTORY_SEPARATOR . "conf" . DIRECTORY_SEPARATOR . "nginx.conf";
+		if (!file_put_contents($conf_fn, $new_conf)) {
+			throw new Exception("Couldn't write '$conf_fn'.");
+		}
+	}
 }
 

@@ -10,12 +10,11 @@ use SDK\{Config as SDKConfig, Exception, FileOps};
 class CLI extends Abstracts\PHP implements Interfaces\PHP
 {
 	protected $conf;
-	protected $scenario;
 
-	public function __construct(PGOConfig $conf, string $scenario)
+	public function __construct(PGOConfig $conf)
 	{
 		$this->conf = $conf;
-		$this->scenario = $scenario;
+		$this->scenario = $conf->getScenario();
 
 		$this->setupPaths();
 	}
@@ -30,5 +29,7 @@ class CLI extends Abstracts\PHP implements Interfaces\PHP
 
 		return $exe;
 	}
+
+
 }
 

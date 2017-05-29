@@ -150,8 +150,25 @@ abstract class PHP
 		return $construct;
 	}
 
-	public function getCmd() : string
+	public function exec(string $php_cmd, string $args = NULL) : int
 	{
+		$env = $this->createEnv();
+		$exe  = $this->getExeFilename();
+		$ini  = $this->getIniFilename();
+
+		$cert_path = getenv("PHP_SDK_ROOT_PATH") . "\\msys2\\usr\\ssl\\cert.pem";
+		$ini .= " -d curl.cainfo=$cert_path";
+
+		$cmd = "$exe -n -c $ini " . ($args ? "$args " : "") . "$php_cmd";
+
+		$desc = array(
+			0 => array("file", "php://stdin", "r"),
+			1 => array("file", "php://stdout", "w"),
+			2 => array("file", "php://stderr", "w")
+		);
+		$p = proc_open($cmd, $dummy = array(), $dummy, $this->getRootDir(), $this->createEnv());
+
+		return proc_close($p);
 	}
 }
 

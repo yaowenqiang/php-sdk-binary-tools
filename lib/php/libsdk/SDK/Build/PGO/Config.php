@@ -12,6 +12,7 @@ class Config
 	protected $mode;
 	protected $last_port = 8083;
 	protected $sections = array();
+	protected $scenario = "default";
 
 	public function __construct(int $mode = MODE_RUN)
 	{
@@ -38,6 +39,13 @@ class Config
 		} else {
 			throw new Exception("Unknown config mode '$mode'.");
 		}
+	}
+
+	public function getToolsDir() : string
+	{
+		$base = $this->getWorkDir();
+
+		return $base . DIRECTORY_SEPARATOR . "tools";
 	}
 
 	public function getWorkDir() : string
@@ -80,7 +88,18 @@ class Config
 		return $ret;
 	}
 
-	public function getCasesDir(string $name = NULL) : string
+	public function getCaseWorkDir(string $name = NULL) : string
+	{
+		$ret = $this->getWorkDir() . DIRECTORY_SEPARATOR . "htdocs";
+
+		if ($name) {
+			$ret .= DIRECTORY_SEPARATOR . $name;
+		}
+
+		return $ret;
+	}
+
+	public function getCasesTplDir(string $name = NULL) : string
 	{
 		$ret = getenv("PHP_SDK_ROOT_PATH") . DIRECTORY_SEPARATOR . "pgo" . DIRECTORY_SEPARATOR . "cases";
 
@@ -161,5 +180,18 @@ class Config
 		if (false === $ret || strlen($s) !== $ret) {
 			throw new Exception("Errors with writing to '$fn'.");
 		}
+	}
+
+	public function setScenario(string $scenario) : void
+	{
+		if (!in_array($scenario, array("default", "cache"), true)) {
+			throw new Exception("Unknown scenario '$scenario'.");
+		}
+		$this->scenario = $scenario;
+	}
+
+	public function getScenario() : string
+	{
+		return $this->scenario;
 	}
 }

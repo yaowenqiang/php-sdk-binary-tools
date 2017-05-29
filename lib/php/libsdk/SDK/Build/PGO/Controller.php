@@ -28,6 +28,7 @@ class Controller
 	public function handle()
 	{
 		$this->conf = new PGOConfig("init" !== $this->cmd);
+		$this->conf->setScenario($this->scenario);
 
 		switch ($this->cmd) {
 		default:
@@ -67,6 +68,13 @@ class Controller
 			}
 		}
 
+		$tool_dir = $this->conf->getToolsDir();
+		if (!is_dir($tool_dir)) {
+			if (!mkdir($tool_dir)) {
+				throw new Exception("Failed to create '$tool_dir'.");
+			}
+		}
+
 		$htdocs = $this->conf->getHtdocs();
 		if (!is_dir($htdocs)) {
 			if (!mkdir($htdocs)) {
@@ -80,11 +88,11 @@ class Controller
 		$maria = new MariaDB($this->conf);
 		$maria->init();
 
-		$php_fcgi_tcp = new PHP\FCGI($this->conf, true, $maria, $nginx, $this->scenario);
+		$php_fcgi_tcp = new PHP\FCGI($this->conf, true, $maria, $nginx);
 		$php_fcgi_tcp->init();
 
 		/* Setup training cases. */
-		foreach (glob($this->conf->getCasesDir() . DIRECTORY_SEPARATOR . "*") as $base) {
+		foreach (glob($this->conf->getCasesTplDir() . DIRECTORY_SEPARATOR . "*") as $base) {
 			if(!is_dir($base)) {
 				continue;
 			}
@@ -95,12 +103,19 @@ class Controller
 				continue;
 			}
 
+			$fn = $base . DIRECTORY_SEPARATOR . "phpsdk_pgo.json";
+			if (file_exists($fn)) {
+				$s = file_get_contents($fn);
+				$this->conf->setSectionItem(basename($base), json_decode($s, true));
+			}
+
 			require $handler_file;
 
 			$ns = basename($base);
 
 			$class = "$ns\\TrainingCaseHandler";
 			$handler = new $class($this->conf);
+			$handler->init();
 		}
 
 		$this->conf->dump();
@@ -145,7 +160,7 @@ class Controller
 		$maria = new MariaDB($this->conf);
 		$maria->up();
 
-		$php_fcgi_tcp = new PHP\FCGI($this->conf, true, $maria, $nginx, $this->scenario);
+		$php_fcgi_tcp = new PHP\FCGI($this->conf, true, $maria, $nginx);
 		$php_fcgi_tcp->up();
 
 		echo "The PGO environment is up.\n";
@@ -165,7 +180,7 @@ class Controller
 		$maria = new MariaDB($this->conf);
 		$maria->down($force);
 
-		$php_fcgi_tcp = new PHP\FCGI($this->conf, true, $maria, $nginx, $this->scenario);
+		$php_fcgi_tcp = new PHP\FCGI($this->conf, true, $maria, $nginx);
 		$php_fcgi_tcp->down($force);
 
 		echo "The PGO environment has been shut down.\n";
