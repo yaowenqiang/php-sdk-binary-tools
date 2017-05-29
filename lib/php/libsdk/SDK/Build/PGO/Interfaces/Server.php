@@ -7,8 +7,8 @@ use SDK\Build\PGO\Config;
 interface Server
 {
 	public function __construct(Config $conf);
-	public function init();
-	public function up();
-	public function down();
+	public function init() : void;
+	public function up() : void;
+	public function down() : void;
 }
 

@@ -19,7 +19,7 @@ class MariaDB implements Server
 		$this->base = $conf->getSrvDir("mariadb");
 	}
 
-	protected function getDist()
+	protected function getDist() : void
 	{
 		$url = "https://downloads.mariadb.com/MariaDB/mariadb-5.5.56/win32-packages/mariadb-5.5.56-win32.zip";
 		$bn = basename($url);
@@ -74,7 +74,7 @@ class MariaDB implements Server
 		}*/
 	}
 
-	public function init()
+	public function init() : void
 	{
 		echo "Initializing MariaDB.\n";
 
@@ -89,7 +89,7 @@ class MariaDB implements Server
 		echo "MariaDB initialization done.\n";
 	}
 
-	public function up()
+	public function up() : void
 	{
 		echo "Starting MariaDB.\n";
 
@@ -104,7 +104,7 @@ class MariaDB implements Server
 		chdir($cwd);
 	}
 
-	public function down()
+	public function down() : void
 	{
 		echo "Stopping MariaDB.\n";
 

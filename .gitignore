@@ -22,3 +22,4 @@ oracle
 phpsdk-local.bat
 pgo/work
 !pgo/tpl/php
+!lib/php/libsdk/SDK/Build/PGO/Server/PHP

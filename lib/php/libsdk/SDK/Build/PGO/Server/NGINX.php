@@ -19,7 +19,7 @@ class NGINX implements Server
 		$this->base = $conf->getSrvDir("nginx");
 	}
 
-	protected function getDist()
+	protected function getDist() : void
 	{
 		$url = "http://nginx.org/download/nginx-1.13.0.zip";
 		$bn = basename($url);
@@ -45,7 +45,7 @@ class NGINX implements Server
 		unlink($dist);
 	}
 
-	protected function setupDist()
+	protected function setupDist() : void
 	{
 		$nginx_conf_in = $this->conf->getTplDir("nginx") . DIRECTORY_SEPARATOR . "nginx.conf";
 		$in = file_get_contents($nginx_conf_in);
@@ -74,7 +74,7 @@ class NGINX implements Server
 		}
 	}
 
-	public function init()
+	public function init() : void
 	{
 		echo "Initializing NGINX.\n";
 		if (!is_dir($this->base)) {
@@ -89,7 +89,7 @@ class NGINX implements Server
 		echo "NGINX initialization done.\n";
 	}
 
-	public function up()
+	public function up() : void
 	{
 		echo "Starting NGINX.\n";
 
@@ -104,7 +104,7 @@ class NGINX implements Server
 		chdir($cwd);
 	}
 
-	public function down()
+	public function down() : void
 	{
 		echo "Stopping NGINX.\n";
 

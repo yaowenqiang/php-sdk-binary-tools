@@ -5,21 +5,24 @@ namespace SDK\Build\PGO;
 use SDK\{Config as SDKConfig, Exception};
 use SDK\Build\PGO\Config as PGOConfig;
 use SDK\Build\PGO\Server\{MariaDB, NGINX};
+use SDK\Build\PGO\Server\PHP;
 
 /* TODO add bench action */
 
 class Controller
 {
 	protected $cmd;
-	protected $deps_root;
-	protected $php_root;
+	protected $scenario;
 	protected $conf;
 
-	public function __construct(string $cmd, string $php_root, string $deps_root)
+	public function __construct(string $cmd, ?string $scenario)
 	{
 		$this->cmd = $cmd;
-		$this->php_root = $php_root;
-		$this->deps_root = $deps_root;
+
+		if (NULL == $scenario) {
+			$scenario = "default";
+		}
+		$this->scenario = $scenario;
 	}
 
 	public function handle()
@@ -74,8 +77,11 @@ class Controller
 		$nginx = new NGINX($this->conf);
 		$nginx->init();
 
-		$nginx = new MariaDB($this->conf);
-		$nginx->init();
+		$maria = new MariaDB($this->conf);
+		$maria->init();
+
+		$php_fcgi_tcp = new PHP\FCGI($this->conf, true, $maria, $nginx, $this->scenario);
+		$php_fcgi_tcp->init();
 
 		$this->conf->dump();
 
@@ -116,8 +122,11 @@ class Controller
 		$nginx = new NGINX($this->conf);
 		$nginx->up();
 
-		$nginx = new MariaDB($this->conf);
-		$nginx->up();
+		$maria = new MariaDB($this->conf);
+		$maria->up();
+
+		$php_fcgi_tcp = new PHP\FCGI($this->conf, true, $maria, $nginx, $this->scenario);
+		$php_fcgi_tcp->up();
 
 		echo "The PGO environment is up.\n";
 	}
@@ -133,8 +142,11 @@ class Controller
 		$nginx = new NGINX($this->conf);
 		$nginx->down();
 
-		$nginx = new MariaDB($this->conf);
-		$nginx->down();
+		$maria = new MariaDB($this->conf);
+		$maria->down();
+
+		$php_fcgi_tcp = new PHP\FCGI($this->conf, true, $maria, $nginx, $this->scenario);
+		$php_fcgi_tcp->down();
 
 		echo "The PGO environment has been shut down.\n";
 	}

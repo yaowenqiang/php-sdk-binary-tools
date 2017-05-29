@@ -6,13 +6,14 @@ use SDK\Config;
 use SDK\Exception;
 use SDK\Build\PGO\Controller;
 
-$sopt = "itudh";
-$lopt = array("init", "train", "up", "down", "help");
+$sopt = "itudhs:";
+$lopt = array("init", "train", "up", "down", "help", "scenario:",);
 
 $cmd = NULL;
 /* TODO For now we simply check the current php build, this could be extended to take arbitrary binaries. */
 $deps_root = NULL;
 $php_root = NULL;
+$scenario = NULL;
 
 try {
 	$opt = getopt($sopt, $lopt);
@@ -34,6 +35,10 @@ try {
 		case "down":
 			$cmd = "down";
 			break;
+		case "s":
+		case "scenario":
+			$scenario = $val;
+			break;
 		case "h": case "help":
 			usage(0);
 			break;
@@ -47,10 +52,10 @@ try {
 
 	$deps_root = Config::getDepsLocalPath();
 
+	/* XXX Need these checks for more safety, as long as the dist zipballs are not supported. */
 	if (!file_exists("Makefile")) {
 		throw new Exception("Makefile not found. Arbitrary php snapshots are not supported yet, switch to the php source dir.");
 	}
-	/* XXX might be improved. */
 	if (preg_match(",BUILD_DIR=(.+),", file_get_contents("Makefile"), $m)) {
 		$php_root = trim($m[1]);
 	}
@@ -59,7 +64,7 @@ try {
 	}
 	//var_dump($cmd, $deps_root, $php_root);
 
-	$controller = new Controller($cmd, $php_root, $deps_root);
+	$controller = new Controller($cmd, $scenario);
 	$controller->handle();
 
 	/*$env = getenv();
