@@ -70,7 +70,7 @@ try {
 	//var_dump($cmd, $deps_root, $php_root);
 
 	$controller = new Controller($cmd, $scenario);
-	$controller->handle();
+	$controller->handle($force);
 
 	/*$env = getenv();
 	$env["PATH"] = $deps_root . DIRECTORY_SEPARATOR . "bin;" . $env["PATH"];

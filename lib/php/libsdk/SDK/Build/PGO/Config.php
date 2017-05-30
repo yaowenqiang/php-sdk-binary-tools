@@ -8,14 +8,24 @@ class Config
 {
 	const MODE_INIT = 0;
 	const MODE_RUN = 1;
+	const MODE_REINIT = 2;
 
 	protected $mode;
 	protected $last_port = 8083;
 	protected $sections = array();
 	protected $scenario = "default";
+	protected $tpl_vars = array();
 
 	public function __construct(int $mode = MODE_RUN)
 	{
+		if (self::MODE_REINIT == $mode) {
+			$fn = $this->getWorkSectionsFilename();
+			if (file_exists($fn)) {
+				unlink($fn);
+			}
+			$mode = self::MODE_INIT;
+		}
+
 		$this->mode = $mode;
 
 
@@ -23,19 +33,19 @@ class Config
 
 		if (self::MODE_INIT == $mode) {
 			foreach (array("nginx", "mariadb", "php") as $i) {
-				$fn = $this->getTplDir() . DIRECTORY_SEPARATOR . $i . DIRECTORY_SEPARATOR . "phpsdk_pgo.json";
-				if (file_exists($fn)) {
-					$s = file_get_contents($fn);
-					$this->setSectionItem($i, json_decode($s, true));
-				}
+				$this->importSectionFromDir($i, $this->getTplDir() . DIRECTORY_SEPARATOR . $i);
 			}
 		} else if (self::MODE_RUN == $mode) {
-			$fn = $this->getSectionsFilename();
+			$fn = $this->getWorkSectionsFilename();
 			if (!file_exists($fn)) {
 				throw new Exception("Required config doesn't exist under '$fn'.");
 			}
 			$s = file_get_contents($fn);
 			$this->sections = json_decode($s, true);
+			foreach($this->sections as $k => $v) {
+				$this->importTplVars($k, $v);
+			}
+
 		} else {
 			throw new Exception("Unknown config mode '$mode'.");
 		}
@@ -53,6 +63,17 @@ class Config
 		$base = getenv("PHP_SDK_ROOT_PATH");
 
 		return $base . DIRECTORY_SEPARATOR . "pgo" . DIRECTORY_SEPARATOR . "work";
+	}
+
+	public function getJobDir(string $name = NULL) : string
+	{
+		$ret = $this->getWorkDir() . DIRECTORY_SEPARATOR . "job";
+
+		if ($name) {
+			$ret .= DIRECTORY_SEPARATOR . $name;
+		}
+
+		return $ret;
 	}
 
 	public function getSrvDir(string $name = NULL) : string
@@ -163,16 +184,93 @@ class Config
 		}
 
 		$it = $val;
+
+		$this->syncTplVars();
+		$this->dump();
 	}
 
-	public function getSectionsFilename()
+	public function importSectionFromDir(string $name, string $dir) : void
+	{
+		$fn = $dir . DIRECTORY_SEPARATOR . "phpsdk_pgo.json";
+		if (!file_exists($fn)) {
+			throw new Exception("Couldn't import section, file '$fn' doesn't exist.");
+		}
+
+		$s = file_get_contents($fn);
+		$this->setSectionItem($name, json_decode($s, true));
+	}
+
+	protected function syncTplVars() : void
+	{
+		$this->tpl_vars = array();
+		foreach ($this->sections as $k => $v) {
+			$this->importTplVars($k, $v);	
+		}
+	}
+
+	public function buildTplVarName(...$args) : string
+	{
+		$tpl_k = array("PHP_SDK_PGO");
+		
+	 	foreach ($args as $a) {
+			$tpl_k[] = strtoupper($a);
+		}
+
+		return implode("_", $tpl_k);
+	}
+
+	protected function importTplVars(string $section_name, array $section) : void
+	{
+		foreach($section as $k0 => $v0) {
+
+			if (is_array($v0)) {
+				if (substr($k0, -4) == ":env") {
+					/* Don't put env vars as tpl vars for now. */
+					continue;	
+				}
+				$this->importTplVars($section_name . "_" . $k0, $v0);
+			} else {
+				$tpl_k = $this->buildTplVarName($section_name, $k0);
+				$this->tpl_vars[$tpl_k] = $v0;
+			}
+		}	
+	}
+
+	public function processTpl(string $s, array $additional_vars = array()) : string
+	{
+		$vars = array_merge($this->tpl_vars, $additional_vars);
+
+		$s = str_replace(array_keys($vars), array_values($vars), $s);
+
+		return $s;
+	}
+
+	public function processTplFile(string $tpl_fn, string $dst_fn, array $additional_vars = array()) : void
+	{
+		if (!file_exists($tpl_fn)) {
+			throw new Exception("Template file '$fn' doesn't exist.");
+		}
+
+		$s = file_get_contents($tpl_fn);	
+		if (false === $s) {
+			throw new Exception("Couldn't read '$tpl_fn'.");
+		}
+
+		$s = $this->processTpl($s, $additional_vars);
+
+		if (false === file_put_contents($dst_fn, $s)) {
+			throw new Exception("Failed to write '$dst_fn'.");
+		}
+	}
+
+	public function getWorkSectionsFilename()
 	{
 		return $this->getWorkDir() . DIRECTORY_SEPARATOR . "phpsdk_pgo.json";
 	}
 
 	public function dump(string $fn = NULL) : void
 	{
-		$fn = $fn ? $fn : $this->getSectionsFilename();
+		$fn = $fn ? $fn : $this->getWorkSectionsFilename();
 
 		$s = json_encode($this->sections, JSON_PRETTY_PRINT);
 
@@ -193,5 +291,15 @@ class Config
 	public function getScenario() : string
 	{
 		return $this->scenario;
+	}
+
+	public function getNextPort() : int
+	{
+		return ++$this->last_port;
+	}
+
+	public function getSdkPhpCmd() : string
+	{
+		return getenv("PHP_SDK_PHP_CMD");
 	}
 }

@@ -55,7 +55,8 @@ class FCGI extends Abstracts\PHP implements Interfaces\PHP
 
 	public function init()
 	{
-		echo "Using PHP from the object dir.\n";
+		echo "\nInitializing PHP FCGI.\n";
+		echo "PHP FCGI initialization done.\n";
 	}
 
 	public function up()

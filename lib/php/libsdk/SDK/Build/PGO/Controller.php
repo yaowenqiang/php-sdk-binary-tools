@@ -25,8 +25,10 @@ class Controller
 		$this->scenario = $scenario;
 	}
 
-	public function handle()
+	public function handle($force)
 	{
+		$mode = (int)("init" !== $this->cmd);
+		$mode = (PGOConfig::MODE_INIT == $mode && $force) ? PGOConfig::MODE_REINIT : $mode;
 		$this->conf = new PGOConfig("init" !== $this->cmd);
 		$this->conf->setScenario($this->scenario);
 
@@ -35,7 +37,7 @@ class Controller
 			throw new Exception("Unknown action '{$this->cmd}'.");
 			break;
 		case "init":
-			$this->init();
+			$this->init($force);
 			break;
 		case "train":
 			$this->train();
@@ -45,14 +47,14 @@ class Controller
 			break;
 
 		case "down":
-			$this->down();
+			$this->down($force);
 			break;
 		}
 	}
 
-	public function init()
+	public function init(bool $force = false)
 	{
-		echo "Initializing PGO training environment.\n";
+		echo "\nInitializing PGO training environment.\n";
 
 		$work_dir = $this->conf->getWorkDir();
 		if (!is_dir($work_dir)) {
@@ -82,6 +84,13 @@ class Controller
 			}
 		}
 
+		$job_dir = $this->conf->getJobDir();
+		if (!is_dir($job_dir)) {
+			if (!mkdir($job_dir)) {
+				throw new Exception("Failed to create job dir '$job_dir'.");
+			}
+		}
+
 		$nginx = new NGINX($this->conf);
 		$nginx->init();
 
@@ -103,22 +112,42 @@ class Controller
 				continue;
 			}
 
-			$fn = $base . DIRECTORY_SEPARATOR . "phpsdk_pgo.json";
-			if (file_exists($fn)) {
-				$s = file_get_contents($fn);
-				$this->conf->setSectionItem(basename($base), json_decode($s, true));
-			}
+			$ns = basename($base);
+			$this->conf->importSectionFromDir($ns, $base);
 
 			require $handler_file;
 
-			$ns = basename($base);
-
 			$class = "$ns\\TrainingCaseHandler";
-			$handler = new $class($this->conf);
+
+			$srv_http_name = $this->conf->getSectionItem($ns, "srv_http");
+			$srv_db_name = $this->conf->getSectionItem($ns, "srv_db");
+			$php_name = $this->conf->getSectionItem($ns, "php");
+
+			$srv_http = NULL;
+			switch($srv_http_name) {
+				case "nginx":
+					$srv_http = $nginx;
+					break;
+			}
+
+			$srv_db = NULL;
+			switch($srv_db_name) {
+				case "nginx":
+					$srv_db = $maria;
+					break;
+			}
+
+			$t_php = NULL;
+			switch($php_name) {
+				case "fcgi":
+					$t_php = $php_fcgi_tcp;
+					break;
+			}
+
+			$handler = new $class($this->conf, $srv_http, $srv_db, $t_php);
+
 			$handler->init();
 		}
-
-		$this->conf->dump();
 
 		echo "Initialization complete.\n";
 	}
@@ -163,6 +192,8 @@ class Controller
 		$php_fcgi_tcp = new PHP\FCGI($this->conf, true, $maria, $nginx);
 		$php_fcgi_tcp->up();
 
+		sleep(1);
+
 		echo "The PGO environment is up.\n";
 	}
 
@@ -182,6 +213,8 @@ class Controller
 
 		$php_fcgi_tcp = new PHP\FCGI($this->conf, true, $maria, $nginx);
 		$php_fcgi_tcp->down($force);
+
+		sleep(1);
 
 		echo "The PGO environment has been shut down.\n";
 	}

@@ -113,24 +113,15 @@ abstract class PHP
 	/* Need to cleanup it somewhere. */
 	public function getIniFilename()
 	{
-		$tpl = $this->getIniTplFilename();
-
 		$ret = tempnam(sys_get_temp_dir(), "ini");
 
-		$in = file_get_contents($tpl);
-		$out = str_replace(
+		$this->conf->processTplFile(
+			$this->getIniTplFilename(),
+			$ret,
 			array(
-				"PHP_SDK_PGO_EXTENSION_DIR"
-			),
-			array(
-				$this->php_ext_root,
-			),
-			$in
+				$this->conf->buildTplVarName("php", "extension_dir") => $this->php_ext_root,
+			)
 		);
-
-		if (!file_put_contents($ret, $out)) {
-			throw new Exception("Couldn't write '$conf_fn'.");
-		}
 
 		return $ret;
 	}

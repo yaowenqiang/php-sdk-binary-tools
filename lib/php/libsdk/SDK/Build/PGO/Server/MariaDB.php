@@ -21,7 +21,7 @@ class MariaDB implements DB
 
 	protected function getDist() : void
 	{
-		$url = "https://downloads.mariadb.com/MariaDB/mariadb-5.5.56/win32-packages/mariadb-5.5.56-win32.zip";
+		$url = $this->conf->getSectionItem("mariadb", "pkg_url");
 		$bn = basename($url);
 		$dist = SDKConfig::getTmpDir() . DIRECTORY_SEPARATOR . $bn;
 
@@ -76,7 +76,7 @@ class MariaDB implements DB
 
 	public function init() : void
 	{
-		echo "Initializing MariaDB.\n";
+		echo "\nInitializing MariaDB.\n";
 
 		if (!is_dir($this->base)) {
 			$this->getDist();
@@ -84,7 +84,7 @@ class MariaDB implements DB
 		$this->setupDist();
 
 		$this->up();
-		$this->down();
+		$this->down(true);
 
 		echo "MariaDB initialization done.\n";
 	}
@@ -102,6 +102,8 @@ class MariaDB implements DB
 		pclose($h);
 
 		chdir($cwd);
+
+		echo "MariaDB started.\n";
 	}
 
 	public function down(bool $force = false) : void
@@ -124,6 +126,8 @@ class MariaDB implements DB
 		}
 
 		chdir($cwd);
+
+		echo "MariaDB stopped.\n";
 	}
 
 	public function query(string $s)

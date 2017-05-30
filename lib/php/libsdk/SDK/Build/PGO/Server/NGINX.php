@@ -48,42 +48,35 @@ class NGINX implements Server
 	protected function setupDist() : void
 	{
 		$nginx_conf_in = $this->conf->getTplDir("nginx") . DIRECTORY_SEPARATOR . "nginx.conf";
-		$in = file_get_contents($nginx_conf_in);
-		$out = str_replace(
-			array(
-				"PHP_SDK_PGO_NGINX_HOST",
-				"PHP_SDK_PGO_NGINX_PORT",
-				"PHP_SDK_PGO_NGINX_DOCROOT",
-				"PHP_SDK_PGO_FCGI_HOST",
-				"PHP_SDK_PGO_FCGI_PORT",
-			),
-			array(
-				$this->conf->getSectionItem("nginx", "host"),
-				$this->conf->getSectionItem("nginx", "port"),
-				str_replace("\\", "/", $this->base . DIRECTORY_SEPARATOR . "html"),
-				$this->conf->getSectionItem("php", "fcgi", "host"),
-				$this->conf->getSectionItem("php", "fcgi", "port"),
-			),
-			$in
-			
+		$conf_fn = $this->base . DIRECTORY_SEPARATOR . "conf" . DIRECTORY_SEPARATOR . "nginx.conf";
+
+		$vars = array();
+		$port = $this->conf->getSectionItem("nginx", "port");
+		if (!$port) {
+			$port = $this->conf->getNextPort();
+			$this->conf->setSectionItem("nginx", "port", $port);
+		}
+
+		$vars = array(
+			$this->conf->buildTplVarName("nginx", "docroot") => str_replace("\\", "/", $this->base . DIRECTORY_SEPARATOR . "html"),
 		);
 
-		$conf_fn = $this->base . DIRECTORY_SEPARATOR . "conf" . DIRECTORY_SEPARATOR . "nginx.conf";
-		if (!file_put_contents($conf_fn, $out)) {
-			throw new Exception("Couldn't write '$conf_fn'.");
-		}
+		$this->conf->processTplFile(
+			$nginx_conf_in,
+			$conf_fn
+		);
 	}
 
 	public function init() : void
 	{
-		echo "Initializing NGINX.\n";
+		echo "\nInitializing NGINX.\n";
 		if (!is_dir($this->base)) {
 			$this->getDist();
 		}
 		$this->setupDist();
 
 		$this->up();
-		$this->down();
+		$this->down(true);
 
 
 		echo "NGINX initialization done.\n";
@@ -102,6 +95,8 @@ class NGINX implements Server
 		pclose($h);
 
 		chdir($cwd);
+
+		echo "NGINX started.\n";
 	}
 
 	public function down(bool $force = false) : void
@@ -120,10 +115,12 @@ class NGINX implements Server
 		}
 
 		chdir($cwd);
+
+		echo "NGINX stopped.\n";
 	}
 
 	/* Use only for init phase! */
-	public function addServer(string $part_tpl_fn, array $tpl_vars)
+	public function addServer(string $part_tpl_fn, array $tpl_vars = array())
 	{
 		if (!file_exists($part_tpl_fn)) {
 			throw new Exception("Template file '$part_tpl_fn' doesn't exist.");
@@ -134,7 +131,7 @@ class NGINX implements Server
 		$cur_conf = file_get_contents($nginx_conf_in);
 
 		$in = file_get_contents($part_tpl_fn);
-		$out = str_replace($tpl_vars["names"], $tpl_vars["vals"], $in);
+		$out = $this->conf->processTpl($in, $tpl_vars);
 
 		$tpl = "    # PHP_SDK_PGO_NGINX_SERVERS_INC_TPL";
 		$new_conf = str_replace($tpl, "$out\n$tpl", $cur_conf);
