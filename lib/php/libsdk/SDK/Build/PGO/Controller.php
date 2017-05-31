@@ -143,6 +143,11 @@ class Controller
 			$handler->run();
 		}
 
+		/* All the PGC files are merged, simply clean them out. */
+		$pgo = new PGO($this->conf, $php);
+		$pgo->clean(true, false);
+		unset($pgo);
+
 		$this->down();
 		echo "PGO training complete.\n";
 	}

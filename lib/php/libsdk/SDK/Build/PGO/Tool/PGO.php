@@ -78,19 +78,23 @@ class PGO
 		$this->dump(false);
 	}
 
-	public function clean() : void
+	public function clean(bool $clean_pgc = true, bool $clean_pgd = true) : void
 	{
-		$its = glob($this->php->getRootDir() . DIRECTORY_SEPARATOR . "*.pgc");
-		$its = array_merge($its, glob($this->php->getExtRootDir() . DIRECTORY_SEPARATOR . "*" . DIRECTORY_SEPARATOR . "*.pgc"));
-		foreach (array_unique($its) as $pgc) {
-			unlink($pgc);
+		if ($clean_pgc) {
+			$its = glob($this->php->getRootDir() . DIRECTORY_SEPARATOR . "*.pgc");
+			$its = array_merge($its, glob($this->php->getExtRootDir() . DIRECTORY_SEPARATOR . "*" . DIRECTORY_SEPARATOR . "*.pgc"));
+			foreach (array_unique($its) as $pgc) {
+				unlink($pgc);
+			}
 		}
 
-		$its = glob($this->php->getRootDir() . DIRECTORY_SEPARATOR . "*.pgd");
-		$its = array_merge($its, glob($this->php->getExtRootDir() . DIRECTORY_SEPARATOR . "*" . DIRECTORY_SEPARATOR . "*.pgd"));
-		foreach (array_unique($its) as $pgd) {
-			`pgomgr /clear $pgd`;
-			//passthru("pgomgr /clear $pgd");
+		if ($clean_pgd) {
+			$its = glob($this->php->getRootDir() . DIRECTORY_SEPARATOR . "*.pgd");
+			$its = array_merge($its, glob($this->php->getExtRootDir() . DIRECTORY_SEPARATOR . "*" . DIRECTORY_SEPARATOR . "*.pgd"));
+			foreach (array_unique($its) as $pgd) {
+				`pgomgr /clear $pgd`;
+				//passthru("pgomgr /clear $pgd");
+			}
 		}
 	}
 }
