@@ -29,12 +29,18 @@ class Controller
 
 	protected function vitalizeSrv()
 	{
-		$php_fcgi_tcp = new PHP\FCGI($this->conf, true);
-		$this->conf->addSrv(new NGINX($this->conf, $php_fcgi_tcp));
+		$all = $this->conf->getSrv("all");
 
-		$this->conf->addSrv(new MariaDB($this->conf));
+		if (empty($all)) {
+			$php_fcgi_tcp = new PHP\FCGI($this->conf, true);
+			$this->conf->addSrv(new NGINX($this->conf, $php_fcgi_tcp));
 
-		return $this->conf->getSrv("all");
+			$this->conf->addSrv(new MariaDB($this->conf));
+
+			$all = $this->conf->getSrv("all");
+		}
+
+		return $all;
 	}
 
 	public function handle($force)
@@ -85,19 +91,22 @@ class Controller
 
 	public function init(bool $force = false)
 	{
-		echo "\nInitializing PGO training environment.\n";
+		echo "\nInitializing PGO training environment.\n\n";
 
 		$this->initWorkDirs();
 
 		foreach ($this->vitalizeSrv() as $srv) {
 			$srv->init($this->conf);
+			echo "\n";
 		}
 
+		echo "\n";
 		foreach (new TrainingCaseIterator($this->conf) as $handler) {
 			$handler->init();
+			echo "\n";
 		}
 
-		echo "Initialization complete.\n";
+		echo "PGO training environment Initialization complete.\n";
 	}
 
 	public function isInitialized()
@@ -114,15 +123,16 @@ class Controller
 			throw new Exception("PGO training environment is not initialized.");
 		}
 
-		echo "Starting PGO training.\n";
+		echo "\nStarting PGO training.\n\n";
 		$this->up();
 
 		foreach (new TrainingCaseIterator($this->conf) as $handler) {
-			//$handler->init();
+			echo "\n";
+			$handler->run();
 		}
 
 		$this->down();
-		echo "PGO training finished.\n";
+		echo "PGO training complete.\n";
 	}
 
 	public function up()
@@ -131,10 +141,11 @@ class Controller
 		if (!$this->isInitialized()) {
 			throw new Exception("PGO training environment is not initialized.");
 		}
-		echo "Starting up PGO environment.\n";
+		echo "\nStarting up PGO environment.\n\n";
 
 		foreach ($this->vitalizeSrv("all") as $srv) {
 			$srv->up();
+			echo "\n";
 		}
 
 		sleep(1);
@@ -148,10 +159,11 @@ class Controller
 			throw new Exception("PGO training environment is not initialized.");
 		}
 		/* XXX check it was started of course. */
-		echo "Shutting down PGO environment.\n";
+		echo "\nShutting down PGO environment.\n\n";
 
 		foreach ($this->vitalizeSrv("all") as $srv) {
 			$srv->down($force);
+			echo "\n";
 		}
 
 		sleep(1);

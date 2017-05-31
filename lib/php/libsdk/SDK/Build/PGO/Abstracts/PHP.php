@@ -48,6 +48,11 @@ abstract class PHP
 		return $env;
 	}
 
+	public function getExtRootDir() : string
+	{
+		return $this->php_ext_root;
+	}
+
 	public function getRootDir() : string
 	{
 		if ($this->php_root) {

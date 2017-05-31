@@ -16,10 +16,9 @@ class Training
 		$this->conf = $conf;
 		$this->t_case = $t_case;
 		
-		if (!in_array($type, array("web", "cli"))) {
+		if (!in_array($this->t_case->getType(), array("web", "cli"))) {
 			throw new Exception("Unknown training type '$type'.");
 		}
-		$this->type = $type;
 	}
 
 	public function getCase() : TrainingCase
@@ -27,10 +26,10 @@ class Training
 		return $this->t_case;
 	}
 
-	public function runWeb(int $max_runs)
+	public function runWeb(int $max_runs, ?array &$stat = array()) : void
 	{
 		$url_list_fn = $this->t_case->getJobFilename();
-		$a = file($url_list, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+		$a = file($url_list_fn, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
 		$stat = array("http_code" => array(),);
 
@@ -82,34 +81,23 @@ class Training
 
 		}
 
-		echo "\nTraining complete.\n";
-
-		echo "HTTP responses:\n";
-		foreach ($stat["http_code"] as $code => $num) {
-			printf("    %d received %d times\n", $code, $num);
-		}
-
 		echo "\n";
+
 	}
 
 	/* TODO Extend with number runs. */
-	public function run()
+	public function run(int $max_runs = 1, ?array &$stat = array()) : void
 	{
-		$repeat = 1;
-
 		$type = $this->t_case->getType();
 		switch ($type)
 		{
 			case "web":
-				$this->runWeb($repeat);
+				$this->runWeb($max_runs, $stat);
 				break;
 
 			case "cli":
 			default:
-				throw new Exception("");
-				break;
-
+				throw new Exception("Unknown training type '$type'.");
 		}
-		
 	}
 }

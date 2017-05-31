@@ -14,6 +14,7 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 	protected $base;
 	protected $nginx;
 	protected $php;
+	protected $max_runs = 4;
 
 	public function __construct(Config $conf, ?Interfaces\Server $nginx, ?Interfaces\Server\DB $srv_db)
 	{
@@ -73,13 +74,11 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 	public function setupUrls()
 	{
 		$this->nginx->up();
-		$this->php->up();
 
 		$url = "http://" . $this->conf->getSectionItem($this->getName(), "host") . ":" . $this->conf->getSectionItem($this->getName(), "port") . "/en/blog/";
 		$s = file_get_contents($url);
 
 		$this->nginx->down();
-		$this->php->down();
 
 		echo "Generating training urls.\n";
 
@@ -102,7 +101,7 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 
 	public function init() : void
 	{
-		echo "\nInitializing " . $this->getName() . ".\n";
+		echo "Initializing " . $this->getName() . ".\n";
 
 		$this->setupDist();
 		$this->setupUrls();

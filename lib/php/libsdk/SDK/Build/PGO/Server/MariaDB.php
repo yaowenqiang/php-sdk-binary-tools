@@ -78,7 +78,7 @@ class MariaDB extends Server implements DB
 
 	public function init() : void
 	{
-		echo "\nInitializing " . $this->name . ".\n";
+		echo "Initializing " . $this->name . ".\n";
 
 		if (!is_dir($this->base)) {
 			$this->getDist();

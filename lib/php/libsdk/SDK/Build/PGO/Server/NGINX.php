@@ -74,7 +74,7 @@ class NGINX extends Abstracts\Server implements Interfaces\Server\HTTP
 
 	public function init() : void
 	{
-		echo "\nInitializing " . $this->name . ".\n";
+		echo "Initializing " . $this->name . ".\n";
 		if (!is_dir($this->base)) {
 			$this->getDist();
 		}
