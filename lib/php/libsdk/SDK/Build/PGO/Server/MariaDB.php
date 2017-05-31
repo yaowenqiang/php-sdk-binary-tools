@@ -3,25 +3,27 @@
 namespace SDK\Build\PGO\Server;
 
 use SDK\Build\PGO\Interfaces\Server\DB;
+use SDK\Build\PGO\Abstracts\Server;
 use SDK\Build\PGO\Config as PGOConfig;
 use SDK\{Config as SDKConfig, Exception, FileOps};
 
-class MariaDB implements DB
+class MariaDB extends Server implements DB
 {
 	use FileOps;
 
 	protected $conf;
 	protected $base;
+	protected $name = "MariaDB";
 
 	public function __construct(PGOConfig $conf)
 	{
 		$this->conf = $conf;
-		$this->base = $conf->getSrvDir("mariadb");
+		$this->base = $conf->getSrvDir(strtolower($this->name));
 	}
 
 	protected function getDist() : void
 	{
-		$url = $this->conf->getSectionItem("mariadb", "pkg_url");
+		$url = $this->conf->getSectionItem($this->name, "pkg_url");
 		$bn = basename($url);
 		$dist = SDKConfig::getTmpDir() . DIRECTORY_SEPARATOR . $bn;
 
@@ -76,7 +78,7 @@ class MariaDB implements DB
 
 	public function init() : void
 	{
-		echo "\nInitializing MariaDB.\n";
+		echo "\nInitializing " . $this->name . ".\n";
 
 		if (!is_dir($this->base)) {
 			$this->getDist();
@@ -86,12 +88,12 @@ class MariaDB implements DB
 		$this->up();
 		$this->down(true);
 
-		echo "MariaDB initialization done.\n";
+		echo $this->name . " initialization done.\n";
 	}
 
 	public function up() : void
 	{
-		echo "Starting MariaDB.\n";
+		echo "Starting " . $this->name . ".\n";
 
 		$cwd = getcwd();
 
@@ -103,19 +105,19 @@ class MariaDB implements DB
 
 		chdir($cwd);
 
-		echo "MariaDB started.\n";
+		echo $this->name . " started.\n";
 	}
 
 	public function down(bool $force = false) : void
 	{
-		echo "Stopping MariaDB.\n";
+		echo "Stopping " . $this->name . ".\n";
 
 		$cwd = getcwd();
 
 		chdir($this->base);
 
-		$user = $this->conf->getSectionItem("mariadb", "user");
-		$pass = $this->conf->getSectionItem("mariadb", "pass");
+		$user = $this->conf->getSectionItem($this->name, "user");
+		$pass = $this->conf->getSectionItem($this->name, "pass");
 
 		$cmd = sprintf(".\\bin\\mysqladmin.exe -u $user %s--shutdown_timeout=0 shutdown", ($pass ? "-p$pass " : ""));
 		exec($cmd);
@@ -127,7 +129,7 @@ class MariaDB implements DB
 
 		chdir($cwd);
 
-		echo "MariaDB stopped.\n";
+		echo $this->name . " stopped.\n";
 	}
 
 	public function query(string $s)
@@ -138,10 +140,10 @@ class MariaDB implements DB
 
 		chdir($this->base);
 
-		$user = $this->conf->getSectionItem("mariadb", "user");
-		$pass = $this->conf->getSectionItem("mariadb", "pass");
-		$host = $this->conf->getSectionItem("mariadb", "host");
-		$port = $this->conf->getSectionItem("mariadb", "port");
+		$user = $this->conf->getSectionItem($this->name, "user");
+		$pass = $this->conf->getSectionItem($this->name, "pass");
+		$host = $this->conf->getSectionItem($this->name, "host");
+		$port = $this->conf->getSectionItem($this->name, "port");
 
 		$pass_arg = $pass ? "-p$pass " : "";
 		$ret = shell_exec(".\bin\mysql.exe -u $user $pass_arg -h $host -P $port -e \"$s\"");

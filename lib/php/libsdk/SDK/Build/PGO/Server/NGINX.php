@@ -2,26 +2,30 @@
 
 namespace SDK\Build\PGO\Server;
 
-use SDK\Build\PGO\Interfaces\Server;
-use SDK\Build\PGO\Config as PGOConfig;
+use SDK\Build\PGO\Interfaces;
+use SDK\Build\PGO\Abstracts;
+use SDK\Build\PGO\{Config as PGOConfig};
 use SDK\{Config as SDKConfig, Exception, FileOps};
 
-class NGINX implements Server
+class NGINX extends Abstracts\Server implements Interfaces\Server\HTTP
 {
 	use FileOps;
 
+	protected $name = "NGINX";
 	protected $conf;
 	protected $base;
+	protected $php;
 
-	public function __construct(PGOConfig $conf)
+	public function __construct(PGOConfig $conf, Interfaces\PHP $php)
 	{
 		$this->conf = $conf;
-		$this->base = $conf->getSrvDir("nginx");
+		$this->base = $conf->getSrvDir(strtolower($this->name));
+		$this->php = $php;
 	}
 
 	protected function getDist() : void
 	{
-		$url = "http://nginx.org/download/nginx-1.13.0.zip";
+		$url = $this->conf->getSectionItem($this->name, "pkg_url");
 		$bn = basename($url);
 		$dist = SDKConfig::getTmpDir() . DIRECTORY_SEPARATOR . $bn;
 
@@ -47,18 +51,18 @@ class NGINX implements Server
 
 	protected function setupDist() : void
 	{
-		$nginx_conf_in = $this->conf->getTplDir("nginx") . DIRECTORY_SEPARATOR . "nginx.conf";
+		$nginx_conf_in = $this->conf->getTplDir($this->name) . DIRECTORY_SEPARATOR . "nginx.conf";
 		$conf_fn = $this->base . DIRECTORY_SEPARATOR . "conf" . DIRECTORY_SEPARATOR . "nginx.conf";
 
 		$vars = array();
-		$port = $this->conf->getSectionItem("nginx", "port");
+		$port = $this->conf->getSectionItem($this->name, "port");
 		if (!$port) {
 			$port = $this->conf->getNextPort();
-			$this->conf->setSectionItem("nginx", "port", $port);
+			$this->conf->setSectionItem($this->name, "port", $port);
 		}
 
 		$vars = array(
-			$this->conf->buildTplVarName("nginx", "docroot") => str_replace("\\", "/", $this->base . DIRECTORY_SEPARATOR . "html"),
+			$this->conf->buildTplVarName($this->name, "docroot") => str_replace("\\", "/", $this->base . DIRECTORY_SEPARATOR . "html"),
 		);
 
 		$this->conf->processTplFile(
@@ -69,7 +73,7 @@ class NGINX implements Server
 
 	public function init() : void
 	{
-		echo "\nInitializing NGINX.\n";
+		echo "\nInitializing " . $this->name . ".\n";
 		if (!is_dir($this->base)) {
 			$this->getDist();
 		}
@@ -79,12 +83,14 @@ class NGINX implements Server
 		$this->down(true);
 
 
-		echo "NGINX initialization done.\n";
+		echo $this->name . " initialization done.\n";
 	}
 
 	public function up() : void
 	{
-		echo "Starting NGINX.\n";
+		echo "Starting " . $this->name . ".\n";
+
+		$this->php->up();
 
 		$cwd = getcwd();
 
@@ -96,12 +102,14 @@ class NGINX implements Server
 
 		chdir($cwd);
 
-		echo "NGINX started.\n";
+		echo $this->name . " started.\n";
 	}
 
 	public function down(bool $force = false) : void
 	{
-		echo "Stopping NGINX.\n";
+		echo "Stopping " . $this->name . ".\n";
+
+		$this->php->down();
 
 		$cwd = getcwd();
 
@@ -116,7 +124,7 @@ class NGINX implements Server
 
 		chdir($cwd);
 
-		echo "NGINX stopped.\n";
+		echo $this->name . " stopped.\n";
 	}
 
 	/* Use only for init phase! */

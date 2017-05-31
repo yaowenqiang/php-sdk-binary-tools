@@ -6,6 +6,7 @@ use SDK\Build\PGO\Abstracts;
 use SDK\Build\PGO\Interfaces;
 use SDK\Build\PGO\Config;
 use SDK\{Config as SDKConfig, Exception, FileOps};
+use SDK\Build\PGO\Tool;
 
 class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\TrainingCase
 {
@@ -14,12 +15,16 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 	protected $nginx;
 	protected $php;
 
-	public function __construct(Config $conf, ?Interfaces\Server $nginx, ?Interfaces\Server\DB $srv_db, ?Interfaces\PHP $php)
+	public function __construct(Config $conf, ?Interfaces\Server $nginx, ?Interfaces\Server\DB $srv_db)
 	{
+		if (!$nginx) {
+			throw new Exception("Invalid NGINX object");
+		}
+
 		$this->conf = $conf;
 		$this->base = $this->conf->getCaseWorkDir($this->getName());
 		$this->nginx = $nginx;
-		$this->php = $php;
+		$this->php = $nginx->getPhp();
 	}
 
 	public function getName() : string
@@ -47,14 +52,15 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 		}
 
 		if (!is_dir($this->conf->getCaseWorkDir($this->getName()))) {
+			echo "Setting up in '{$this->base}'\n";
 			$php = new PHP\CLI($this->conf);
 			$php->exec($this->getToolFn() . " demo " . $this->base);
 		}
 
-		$port = $this->conf->getSectionItem("symfony_demo", "port");
+		$port = $this->conf->getSectionItem($this->getName(), "port");
 		if (!$port) {
 			$port = $this->conf->getNextPort();
-			$this->conf->setSectionItem("symfony_demo", "port", $port);
+			$this->conf->setSectionItem($this->getName(), "port", $port);
 		}
 
 		$vars = array(
@@ -69,11 +75,13 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 		$this->nginx->up();
 		$this->php->up();
 
-		$url = "http://" . $this->conf->getSectionItem("symfony_demo", "host") . ":" . $this->conf->getSectionItem("symfony_demo", "port") . "/en/blog/";
+		$url = "http://" . $this->conf->getSectionItem($this->getName(), "host") . ":" . $this->conf->getSectionItem($this->getName(), "port") . "/en/blog/";
 		$s = file_get_contents($url);
 
 		$this->nginx->down();
 		$this->php->down();
+
+		echo "Generating training urls.\n";
 
 		$lst = array();
 		if (preg_match_all(", href=\"([^\"]+)\",", $s, $m)) {
@@ -94,17 +102,12 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 
 	public function init() : void
 	{
-		echo "\nInitializing " . __NAMESPACE__ . ".\n";
+		echo "\nInitializing " . $this->getName() . ".\n";
 
 		$this->setupDist();
 		$this->setupUrls();
 
-		echo __NAMESPACE__ . " initialization done.\n";
-	}
-
-	public function run() : void
-	{
-
+		echo $this->getName() . " initialization done.\n";
 	}
 }
 

@@ -3,7 +3,7 @@
 namespace SDK\Build\PGO\Abstracts;
 
 use SDK\Build\PGO\Interfaces\Server;
-use SDK\Build\PGO\Server\PHP\CLI;
+use SDK\Build\PGO\PHP\CLI;
 use SDK\Build\PGO\Config as PGOConfig;
 use SDK\{Config as SDKConfig, Exception, FileOps};
 

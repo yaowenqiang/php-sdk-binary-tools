@@ -1,6 +1,6 @@
 <?php
 
-namespace SDK\Build\PGO\Server\PHP;
+namespace SDK\Build\PGO\PHP;
 
 use SDK\Build\PGO\Interfaces;
 use SDK\Build\PGO\Abstracts;

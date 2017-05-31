@@ -7,7 +7,7 @@ use SDK\Build\PGO\Config as PGOConfig;
 
 interface TrainingCase
 {
-	public function __construct(PGOConfig $conf, ?Server $srv_http, ?Server\DB $srv_db, ?PHP $php);
+	public function __construct(PGOConfig $conf, ?Server $srv_http, ?Server\DB $srv_db);
 
 	public function getName() : string;
 

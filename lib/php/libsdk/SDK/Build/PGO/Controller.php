@@ -5,7 +5,9 @@ namespace SDK\Build\PGO;
 use SDK\{Config as SDKConfig, Exception};
 use SDK\Build\PGO\Config as PGOConfig;
 use SDK\Build\PGO\Server\{MariaDB, NGINX};
-use SDK\Build\PGO\Server\PHP;
+use SDK\Build\PGO\PHP;
+use SDK\Build\PGO\Interfaces\TrainingCase;
+use SDK\Build\PGO\TrainingCaseIterator;
 
 /* TODO add bench action */
 
@@ -23,6 +25,16 @@ class Controller
 			$scenario = "default";
 		}
 		$this->scenario = $scenario;
+	}
+
+	protected function setupSrv()
+	{
+		$php_fcgi_tcp = new PHP\FCGI($this->conf, true);
+		$this->conf->addSrv(new NGINX($this->conf, $php_fcgi_tcp));
+
+		$this->conf->addSrv(new MariaDB($this->conf));
+
+		return $this->conf->getSrv("all");
 	}
 
 	public function handle($force)
@@ -52,100 +64,36 @@ class Controller
 		}
 	}
 
+	protected function initWorkDirs() : void
+	{
+		$dirs = array(
+			$this->conf->getWorkDir(),
+			$this->conf->getSrvDir(),
+			$this->conf->getToolsDir(),
+			$this->conf->getHtdocs(),
+			$this->conf->getJobDir(),
+		);
+
+		foreach ($dirs as $dir) {
+			if (!is_dir($dir)) {
+				if (!mkdir($dir)) {
+					throw new Exception("Failed to create '$dir'.");
+				}
+			}
+		}
+	}
+
 	public function init(bool $force = false)
 	{
 		echo "\nInitializing PGO training environment.\n";
 
-		$work_dir = $this->conf->getWorkDir();
-		if (!is_dir($work_dir)) {
-			if (!mkdir($work_dir)) {
-				throw new Exception("Failed to create work dir '$work_dir'.");
-			}
+		$this->initWorkDirs();
+
+		foreach ($this->setupSrv() as $srv) {
+			$srv->init($this->conf);
 		}
 
-		$srv_dir = $this->conf->getSrvDir();
-		if (!is_dir($srv_dir)) {
-			if (!mkdir($srv_dir)) {
-				throw new Exception("Failed to create '$srv_dir'.");
-			}
-		}
-
-		$tool_dir = $this->conf->getToolsDir();
-		if (!is_dir($tool_dir)) {
-			if (!mkdir($tool_dir)) {
-				throw new Exception("Failed to create '$tool_dir'.");
-			}
-		}
-
-		$htdocs = $this->conf->getHtdocs();
-		if (!is_dir($htdocs)) {
-			if (!mkdir($htdocs)) {
-				throw new Exception("Failed to create '$htdocs'.");
-			}
-		}
-
-		$job_dir = $this->conf->getJobDir();
-		if (!is_dir($job_dir)) {
-			if (!mkdir($job_dir)) {
-				throw new Exception("Failed to create job dir '$job_dir'.");
-			}
-		}
-
-		$nginx = new NGINX($this->conf);
-		$nginx->init();
-
-		$maria = new MariaDB($this->conf);
-		$maria->init();
-
-		$php_fcgi_tcp = new PHP\FCGI($this->conf, true, $maria, $nginx);
-		$php_fcgi_tcp->init();
-
-		/* Setup training cases. */
-		foreach (glob($this->conf->getCasesTplDir() . DIRECTORY_SEPARATOR . "*") as $base) {
-			if(!is_dir($base)) {
-				continue;
-			}
-
-			$handler_file = $base . DIRECTORY_SEPARATOR . "TrainingCaseHandler.php";
-			if (!file_exists($handler_file)) {
-				echo "Test case handler isn't present in '$base'.\n";
-				continue;
-			}
-
-			$ns = basename($base);
-			$this->conf->importSectionFromDir($ns, $base);
-
-			require $handler_file;
-
-			$class = "$ns\\TrainingCaseHandler";
-
-			$srv_http_name = $this->conf->getSectionItem($ns, "srv_http");
-			$srv_db_name = $this->conf->getSectionItem($ns, "srv_db");
-			$php_name = $this->conf->getSectionItem($ns, "php");
-
-			$srv_http = NULL;
-			switch($srv_http_name) {
-				case "nginx":
-					$srv_http = $nginx;
-					break;
-			}
-
-			$srv_db = NULL;
-			switch($srv_db_name) {
-				case "nginx":
-					$srv_db = $maria;
-					break;
-			}
-
-			$t_php = NULL;
-			switch($php_name) {
-				case "fcgi":
-					$t_php = $php_fcgi_tcp;
-					break;
-			}
-
-			$handler = new $class($this->conf, $srv_http, $srv_db, $t_php);
-
+		foreach (new TrainingCaseIterator($this->conf) as $handler) {
 			$handler->init();
 		}
 
@@ -183,14 +131,9 @@ class Controller
 		}
 		echo "Starting up PGO environment.\n";
 
-		$nginx = new NGINX($this->conf);
-		$nginx->up();
-
-		$maria = new MariaDB($this->conf);
-		$maria->up();
-
-		$php_fcgi_tcp = new PHP\FCGI($this->conf, true, $maria, $nginx);
-		$php_fcgi_tcp->up();
+		foreach ($this->getSrv("all") as $srv) {
+			$srv->up();
+		}
 
 		sleep(1);
 
@@ -205,14 +148,9 @@ class Controller
 		/* XXX check it was started of course. */
 		echo "Shutting down PGO environment.\n";
 
-		$nginx = new NGINX($this->conf);
-		$nginx->down($force);
-
-		$maria = new MariaDB($this->conf);
-		$maria->down($force);
-
-		$php_fcgi_tcp = new PHP\FCGI($this->conf, true, $maria, $nginx);
-		$php_fcgi_tcp->down($force);
+		foreach ($this->getSrv("all") as $srv) {
+			$srv->down($force);
+		}
 
 		sleep(1);
 

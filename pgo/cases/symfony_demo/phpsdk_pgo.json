@@ -3,6 +3,5 @@
 	"port": 0,
 	"type": "web",
 	"srv_http": "nginx",
-	"srv_db": null,
-	"php": "fcgi"
+	"srv_db": null
 }

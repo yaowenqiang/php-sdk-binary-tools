@@ -15,6 +15,7 @@ class Config
 	protected $sections = array();
 	protected $scenario = "default";
 	protected $tpl_vars = array();
+	protected $srv = array();
 
 	public function __construct(int $mode = MODE_RUN)
 	{
@@ -134,7 +135,7 @@ class Config
 	public function sectionItemExists(...$args) : bool
 	{
 		$i = 0;
-		$k = $args[$i];
+		$k = strtolower($args[$i]);
 		$it = $this->sections;
 
 		while (array_key_exists($k, $it)) {
@@ -142,7 +143,7 @@ class Config
 
 			if (++$i >= count($args)) break;
 
-			$k = $args[$i];
+			$k = strtolower($args[$i]);
 		}
 
 		return $i == count($args);
@@ -151,7 +152,7 @@ class Config
 	public function getSectionItem(...$args)
 	{
 		$i = 0;
-		$k = $args[$i];
+		$k = strtolower($args[$i]);
 		$it = $this->sections;
 
 		while (array_key_exists($k, $it)) {
@@ -159,7 +160,7 @@ class Config
 
 			if (++$i >= count($args)) break;
 
-			$k = $args[$i];
+			$k = strtolower($args[$i]);
 		}
 
 		if ($i != count($args)) {
@@ -174,13 +175,13 @@ class Config
 		$val = array_pop($args);
 
 		$i = 0;
-		$k = $args[$i];
+		$k = strtolower($args[$i]);
 		$it = &$this->sections;
 
 		while (true) {
 			$it = &$it[$k];
 			if (++$i >= count($args)) break;
-			$k = $args[$i];
+			$k = strtolower($args[$i]);
 		}
 
 		$it = $val;
@@ -302,4 +303,34 @@ class Config
 	{
 		return getenv("PHP_SDK_PHP_CMD");
 	}
+
+	public function addSrv($item) : void
+	{
+		$name = strtolower($item->getName());
+
+		if (isset($this->srv[$name])) {
+			throw new Exception("Server '$name' already exists.");
+		}
+
+		/* XXX Additional checks could not harm. */
+		$this->srv[$name] = $item;
+	}
+
+	public function getSrv(?string $name = NULL)
+	{
+		$ret = NULL;
+
+		$name = strtolower($name);
+
+		if (!$name) {
+			return NULL;
+		} else if ("all" == $name) {
+			return $this->srv;
+		} else if (isset($this->srv[$name])) {
+			return $this->srv[$name];
+		}
+
+		return $ret;
+	}
 }
+

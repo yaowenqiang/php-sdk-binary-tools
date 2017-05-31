@@ -1,6 +1,6 @@
 <?php
 
-namespace SDK\Build\PGO\Server\PHP;
+namespace SDK\Build\PGO\PHP;
 
 use SDK\Build\PGO\Interfaces;
 use SDK\Build\PGO\Abstracts;
@@ -10,19 +10,15 @@ use SDK\{Config as SDKConfig, Exception, FileOps};
 class FCGI extends Abstracts\PHP implements Interfaces\PHP
 {
 	protected $conf;
-	protected $srv_db;
-	protected $srv_http;
 	protected $is_tcp;
 
-	public function __construct(PGOConfig $conf, bool $is_tcp, Interfaces\Server\DB $srv_db, Interfaces\Server $srv_http)
+	public function __construct(PGOConfig $conf, bool $is_tcp)
 	{
 		if (!$is_tcp) {
 			throw new Exception("FCGI training other than through TCP is not implemented yet.");
 		}
 
 		$this->conf = $conf;
-		$this->srv_db = $srv_db;
-		$this->srv_http = $srv_http;
 		$this->is_tcp = $is_tcp;
 		$this->scenario = $conf->getScenario();
 
