@@ -6,6 +6,7 @@ use SDK\{Config as SDKConfig, Exception};
 use SDK\Build\PGO\Config as PGOConfig;
 use SDK\Build\PGO\Server\{MariaDB, NGINX};
 use SDK\Build\PGO\PHP;
+use SDK\Build\PGO\Tool\PGO;
 use SDK\Build\PGO\Interfaces\TrainingCase;
 use SDK\Build\PGO\TrainingCaseIterator;
 
@@ -125,6 +126,17 @@ class Controller
 
 		echo "\nStarting PGO training.\n\n";
 		$this->up();
+
+		/* Clean the PGO db files, only needed once.
+			Imply also, that any data created during init or
+			startup is wasted. It is done by dumpbing the data
+		 	from the current running processes and subsequently
+		 	removing the files. */
+		$php = $this->conf->getSrv("nginx")->getPhp();
+		$pgo = new PGO($this->conf, $php);
+		$pgo->waste();
+		$pgo->clean();
+		unset($pgo);
 
 		foreach (new TrainingCaseIterator($this->conf) as $handler) {
 			echo "\n";

@@ -41,8 +41,12 @@ class PGO
 		$dll = array_merge($dll, glob($this->php->getExtRootDir() . DIRECTORY_SEPARATOR . "php*.dll"));
 
 		/* find out next index */
+		$tpl = glob($this->php->getRootDir() . DIRECTORY_SEPARATOR . "php7{ts,}.dll", GLOB_BRACE)[0];
+		if (!$tpl) {
+			throw new Exception("Couldn't find php7[ts].dll in the PHP root dir.");
+		}
 		do {
-			if (!file_exists($this->getPgcName($dll[0]))) {
+			if (!file_exists($this->getPgcName($tpl))) {
 				break;
 			}
 			$this->idx++;
@@ -56,13 +60,15 @@ class PGO
 		$its = $this->getWorkItems();	
 
 		foreach ($its as $base) {
-			$pgd = $this->getPgdName($base);
 			$pgc = $this->getPgcName($base);
+			$pgd = $this->getPgdName($base);
 
 			`pgosweep $base $pgc`;
+			//passthru("pgosweep $base $pgc");
 
 			if ($merge) {
 				`pgomgr /merge:1000 $pgc $pgd`;
+				//passthru("pgomgr /merge:1000 $pgc $pgd");
 			}
 		}
 	}
@@ -70,6 +76,22 @@ class PGO
 	public function waste() : void
 	{
 		$this->dump(false);
+	}
+
+	public function clean() : void
+	{
+		$its = glob($this->php->getRootDir() . DIRECTORY_SEPARATOR . "*.pgc");
+		$its = array_merge($its, glob($this->php->getExtRootDir() . DIRECTORY_SEPARATOR . "*" . DIRECTORY_SEPARATOR . "*.pgc"));
+		foreach (array_unique($its) as $pgc) {
+			unlink($pgc);
+		}
+
+		$its = glob($this->php->getRootDir() . DIRECTORY_SEPARATOR . "*.pgd");
+		$its = array_merge($its, glob($this->php->getExtRootDir() . DIRECTORY_SEPARATOR . "*" . DIRECTORY_SEPARATOR . "*.pgd"));
+		foreach (array_unique($its) as $pgd) {
+			`pgomgr /clear $pgd`;
+			//passthru("pgomgr /clear $pgd");
+		}
 	}
 }
 
