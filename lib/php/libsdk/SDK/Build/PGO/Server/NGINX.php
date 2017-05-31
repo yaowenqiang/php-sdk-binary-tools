@@ -67,7 +67,8 @@ class NGINX extends Abstracts\Server implements Interfaces\Server\HTTP
 
 		$this->conf->processTplFile(
 			$nginx_conf_in,
-			$conf_fn
+			$conf_fn,
+			$vars
 		);
 	}
 

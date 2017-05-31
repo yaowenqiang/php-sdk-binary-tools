@@ -27,7 +27,7 @@ class Controller
 		$this->scenario = $scenario;
 	}
 
-	protected function setupSrv()
+	protected function vitalizeSrv()
 	{
 		$php_fcgi_tcp = new PHP\FCGI($this->conf, true);
 		$this->conf->addSrv(new NGINX($this->conf, $php_fcgi_tcp));
@@ -89,7 +89,7 @@ class Controller
 
 		$this->initWorkDirs();
 
-		foreach ($this->setupSrv() as $srv) {
+		foreach ($this->vitalizeSrv() as $srv) {
 			$srv->init($this->conf);
 		}
 
@@ -117,7 +117,9 @@ class Controller
 		echo "Starting PGO training.\n";
 		$this->up();
 
-		/* do work here */
+		foreach (new TrainingCaseIterator($this->conf) as $handler) {
+			//$handler->init();
+		}
 
 		$this->down();
 		echo "PGO training finished.\n";
@@ -131,7 +133,7 @@ class Controller
 		}
 		echo "Starting up PGO environment.\n";
 
-		foreach ($this->getSrv("all") as $srv) {
+		foreach ($this->vitalizeSrv("all") as $srv) {
 			$srv->up();
 		}
 
@@ -148,7 +150,7 @@ class Controller
 		/* XXX check it was started of course. */
 		echo "Shutting down PGO environment.\n";
 
-		foreach ($this->getSrv("all") as $srv) {
+		foreach ($this->vitalizeSrv("all") as $srv) {
 			$srv->down($force);
 		}
 

@@ -75,6 +75,8 @@ class FCGI extends Abstracts\PHP implements Interfaces\PHP
 		}
 
 		/* XXX for Opcache, setup also file cache. */
+
+		echo "PHP FCGI started.\n";
 	}
 
 	public function down(bool $force = false)
@@ -82,6 +84,8 @@ class FCGI extends Abstracts\PHP implements Interfaces\PHP
 		echo "Stopping PHP FCGI.\n";
 
 		exec("taskkill /f /im php-cgi.exe >nul 2>&1");
+
+		echo "PHP FCGI stopped.\n";
 	}
 }
 
