@@ -66,13 +66,21 @@ class FCGI extends Abstracts\PHP implements Interfaces\PHP
 
 		$cmd = "start /b $exe -n -c $ini -b $host:$port";
 
-		/* XXX Log something, etc. */
-		$p = proc_open($cmd, $dummy = array(), $dummy, $this->getRootDir(), $this->createEnv());
+		$desc = array(
+			0 => array("file", "php://stdin", "r"),
+			1 => array("file", "php://stdout", "w"),
+			2 => array("file", "php://stderr", "w")
+		);
+
+		$p = proc_open($cmd, $desc, $pipes, $this->getRootDir(), $this->createEnv());
 		$c = proc_close($p);
 
 		if ($c) {
 			throw new Exception("PHP FCGI process exited with code '$c'.");
 		}
+
+		/* Give some time, it might be slow on PGI enabled proc. */
+		sleep(1);
 
 		/* XXX for Opcache, setup also file cache. */
 

@@ -11,7 +11,7 @@ class Config
 	const MODE_REINIT = 2;
 
 	protected $mode;
-	protected $last_port = 8083;
+	protected $last_port = 8081;
 	protected $sections = array();
 	protected $scenario = "default";
 	protected $tpl_vars = array();
@@ -297,6 +297,11 @@ class Config
 	public function getNextPort() : int
 	{
 		return ++$this->last_port;
+	}
+
+	public function setLastPort(int $port) : void
+	{
+		$this->last_port = $port;
 	}
 
 	public function getSdkPhpCmd() : string

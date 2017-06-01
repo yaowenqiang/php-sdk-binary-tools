@@ -5,6 +5,7 @@ namespace symfony_demo;
 use SDK\Build\PGO\Abstracts;
 use SDK\Build\PGO\Interfaces;
 use SDK\Build\PGO\Config;
+use SDK\Build\PGO\PHP;
 use SDK\{Config as SDKConfig, Exception, FileOps};
 use SDK\Build\PGO\Tool;
 
@@ -58,11 +59,8 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 			$php->exec($this->getToolFn() . " demo " . $this->base);
 		}
 
-		$port = $this->conf->getSectionItem($this->getName(), "port");
-		if (!$port) {
-			$port = $this->conf->getNextPort();
-			$this->conf->setSectionItem($this->getName(), "port", $port);
-		}
+		$port = $this->getHttpPort();
+		$host = $this->getHttpHost();
 
 		$vars = array(
 			$this->conf->buildTplVarName($this->getName(), "docroot") => str_replace("\\", "/", $this->base . DIRECTORY_SEPARATOR . "web"),
@@ -75,10 +73,10 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 	{
 		$this->nginx->up();
 
-		$url = "http://" . $this->conf->getSectionItem($this->getName(), "host") . ":" . $this->conf->getSectionItem($this->getName(), "port") . "/en/blog/";
+		$url = "http://" . $this->getHttpHost() . ":" . $this->getHttpPort() . "/en/blog/";
 		$s = file_get_contents($url);
 
-		$this->nginx->down();
+		$this->nginx->down(true);
 
 		echo "Generating training urls.\n";
 
@@ -86,15 +84,21 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 		if (preg_match_all(", href=\"([^\"]+)\",", $s, $m)) {
 			foreach ($m[1] as $u) {
 				if ("/" == $u[0] && !in_array(substr($u, -3), array("css", "xml", "ico"))) {
-					$ur = "http://" . $this->conf->getSectionItem($this->getName(), "host") . ":" . $this->conf->getSectionItem($this->getName(), "port") . $u;
-					$lst[] = $ur;
+					$ur = "http://" . $this->getHttpHost() . ":" . $this->getHttpPort() . $u;
+					if (!in_array($ur, $lst)) {
+						$lst[] = $ur;
+					}
 				}
 			}
 		}
-		$lst = array_unique($lst);
+
+		if (empty($lst)) {
+			printf("\033[31m WARNING: Training URL list is empty, check the regex!\033[0m\n");
+		}
 
 		$fn = $this->getJobFilename();
-		if (!file_put_contents($fn, implode("\n", $lst))) {
+		$s = implode("\n", $lst);
+		if (strlen($s) !== file_put_contents($fn, $s)) {
 			throw new Exception("Couldn't write '$fn'.");
 		}
 	}
@@ -107,6 +111,7 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 		$this->setupUrls();
 
 		echo $this->getName() . " initialization done.\n";
+		echo $this->getName() . " site configured to run under " . $this->getHttpHost() . ":" .$this->getHttpPort() . "\n";
 	}
 }
 

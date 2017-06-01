@@ -162,7 +162,7 @@ abstract class PHP
 			1 => array("file", "php://stdout", "w"),
 			2 => array("file", "php://stderr", "w")
 		);
-		$p = proc_open($cmd, $dummy = array(), $dummy, $this->getRootDir(), $this->createEnv());
+		$p = proc_open($cmd, $desc, $pipes, $this->getRootDir(), $this->createEnv());
 
 		return proc_close($p);
 	}

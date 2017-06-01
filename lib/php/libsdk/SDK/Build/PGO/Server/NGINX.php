@@ -80,18 +80,16 @@ class NGINX extends Abstracts\Server implements Interfaces\Server\HTTP
 		}
 		$this->setupDist();
 
-		$this->up();
-		$this->down(true);
+		$this->upMe();
+		$this->downMe(true);
 
 
 		echo $this->name . " initialization done.\n";
 	}
 
-	public function up() : void
+	protected function upMe() : void
 	{
 		echo "Starting " . $this->name . ".\n";
-
-		$this->php->up();
 
 		$cwd = getcwd();
 
@@ -106,11 +104,16 @@ class NGINX extends Abstracts\Server implements Interfaces\Server\HTTP
 		echo $this->name . " started.\n";
 	}
 
-	public function down(bool $force = false) : void
+	public function up() : void
+	{
+
+		$this->php->up();
+		$this->upMe();
+	}
+
+	public function downMe(bool $force = false) : void
 	{
 		echo "Stopping " . $this->name . ".\n";
-
-		$this->php->down();
 
 		$cwd = getcwd();
 
@@ -126,6 +129,12 @@ class NGINX extends Abstracts\Server implements Interfaces\Server\HTTP
 		chdir($cwd);
 
 		echo $this->name . " stopped.\n";
+	}
+
+	public function down(bool $force = false) : void
+	{
+		$this->php->down();
+		$this->downMe($force);
 	}
 
 	/* Use only for init phase! */

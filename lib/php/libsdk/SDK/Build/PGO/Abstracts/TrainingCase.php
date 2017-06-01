@@ -58,5 +58,68 @@ class TrainingCase
 		$pgo->dump();
 		echo "Finished dumping training data for " . $this->getName() . ".\n";
 	}
+
+	public function getHttpPort() : string
+	{
+		$port = $this->conf->getSectionItem($this->getName(), "http_port");
+		if (!$port) {
+			$port = $this->conf->getNextPort();
+			$this->conf->setSectionItem($this->getName(), "http_port", $port);
+		}
+		
+		return $port;
+	}
+
+	public function getHttpHost() : string
+	{
+		$host = $this->conf->getSectionItem($this->getName(), "http_host");
+		if (!$host) {
+			$srv = $this->conf->getSrv(
+				$this->conf->getSectionItem($this->getName(), "srv_http")
+			);
+			if ($srv) {
+				$host = $this->conf->getSectionItem($srv->getName(), "host");
+				$this->conf->setSectionItem($this->getName(), "http_host", $host);
+			}
+		}
+		
+		return $host;
+	}
+
+	protected function getDbConf(string $item) : string
+	{
+		$val = $this->conf->getSectionItem($this->getName(), "db_$item");
+		if (!$val) {
+			$srv = $this->conf->getSrv(
+				$this->conf->getSectionItem($this->getName(), "srv_db")
+			);
+			if ($srv) {
+				$val = $this->conf->getSectionItem($srv->getName(), $item);
+				$this->conf->setSectionItem($this->getName(), "db_$item", $val);
+			}
+		}
+		
+		return $val;
+	}
+
+	public function getDbPass() : string
+	{
+		return $this->getDbConf("pass");
+	}
+
+	public function getDbUser() : string
+	{
+		return $this->getDbConf("user");
+	}
+
+	public function getDbHost() : string
+	{
+		return $this->getDbConf("host");
+	}
+
+	public function getDbPort() : string
+	{
+		return $this->getDbConf("port");
+	}
 }
 
