@@ -140,7 +140,7 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 		$cmd = $this->getToolFn() . " plugin install wordpress-importer --activate --allow-root $cmd_path_arg";
 		$php->exec($cmd);
 
-		$cmd = $this->getToolFn() . " import " . $this->conf->getToolSDir() . DIRECTORY_SEPARATOR . "wptest-master/wptest.xml --authors=create --allow-root $cmd_path_arg";
+		$cmd = $this->getToolFn() . " import " . $this->conf->getToolSDir() . DIRECTORY_SEPARATOR . "wptest/wptest.xml --authors=create --allow-root $cmd_path_arg";
 		$php->exec($cmd);
 
 		$this->nginx->down(true);
