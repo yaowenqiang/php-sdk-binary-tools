@@ -69,6 +69,12 @@ class PGO
 			if ($merge) {
 				`pgomgr /merge:1000 $pgc $pgd`;
 				//passthru("pgomgr /merge:1000 $pgc $pgd");
+				/* File is already spent, no need to keep it.
+					If seeing linker warnings about no pgc
+					were found for some object - most
+					likely the object were not included in
+					any training scenario. */
+				unlink($pgc);
 			}
 		}
 	}
