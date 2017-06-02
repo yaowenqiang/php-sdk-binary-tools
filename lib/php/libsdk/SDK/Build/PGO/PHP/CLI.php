@@ -6,6 +6,7 @@ use SDK\Build\PGO\Interfaces;
 use SDK\Build\PGO\Abstracts;
 use SDK\Build\PGO\Config as PGOConfig;
 use SDK\{Config as SDKConfig, Exception, FileOps};
+use SDK\Build\PGO\Tool\PackageWorkman;
 
 class CLI extends Abstracts\PHP implements Interfaces\PHP
 {
@@ -17,6 +18,26 @@ class CLI extends Abstracts\PHP implements Interfaces\PHP
 		$this->scenario = $conf->getScenario();
 
 		$this->setupPaths();
+	}
+
+	public function prepareInit(PackageWorkman $pw, bool $force = false) : void
+	{
+		/* pass */
+	}
+
+	public function init() : void
+	{
+		/* pass */
+	}
+
+	public function up() : void
+	{
+		/* pass */
+	}
+
+	public function down(bool $force = false) : void
+	{
+		/* pass */
 	}
 
 	public function getExeFilename() : string

@@ -181,15 +181,22 @@ trait FileOps
 
 			$zip->close();
 
-			$name = $stat["name"];
+			/* Index of zero might be not the zipped folder, unusual but true. */
+			/*$name = $stat["name"];
 			if ("/" != substr($name, -1)) {
 				throw new Exception("'$name' is not a directory.");
 			}
-			$name = substr($name, 0, -1);
+			$name = substr($name, 0, -1);*/
+
+			$name = rtrim($stat["name"], "/");
+			while (strchr($name, '/') !== false) {
+				$name = dirname($name);
+			}
 
 			$old_dir = $dest_fn . DIRECTORY_SEPARATOR . $name;
 			$new_dir = $dest_fn . DIRECTORY_SEPARATOR . $dest_dn;
-			if (!$this->mv($old_dir, $new_dir)) {
+			/* if (!$this->mv($old_dir, $new_dir)) { */
+			if (!rename($old_dir, $new_dir)) {
 				throw new Exception("Failed to rename '$old_dir' to '$new_dir'.");
 			}
 		} else {

@@ -41,18 +41,11 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 
 	protected function getToolFn() : string
 	{
-		return $this->conf->getToolsDir() . DIRECTORY_SEPARATOR . "symfony";
+		return $this->conf->getToolsDir() . DIRECTORY_SEPARATOR . "symfony.phar";
 	}
 
 	protected function setupDist() : void
 	{
-		if (!file_exists($this->getToolFn())) {
-			$url = "https://symfony.com/installer";
-
-			echo "Fetching '$url'\n";
-			$this->download($url, $this->getToolFn());
-		}
-
 		if (!is_dir($this->conf->getCaseWorkDir($this->getName()))) {
 			echo "Setting up in '{$this->base}'\n";
 			$php = new PHP\CLI($this->conf);
@@ -93,7 +86,7 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 		}
 
 		if (empty($lst)) {
-			printf("\033[31m WARNING: Training URL list is empty, check the regex!\033[0m\n");
+			printf("\033[31m WARNING: Training URL list is empty, check the regex and the possible previous error messages!\033[0m\n");
 		}
 
 		$fn = $this->getJobFilename();
@@ -101,6 +94,12 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 		if (strlen($s) !== file_put_contents($fn, $s)) {
 			throw new Exception("Couldn't write '$fn'.");
 		}
+	}
+
+	public function prepareInit(Tool\PackageWorkman $pw, bool $force = false) : void
+	{
+		$url = $this->conf->getSectionItem($this->getName(), "symfony_phar_url");
+		$pw->fetch($url, $this->getToolFn(), $force);
 	}
 
 	public function init() : void

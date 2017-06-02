@@ -66,6 +66,13 @@ class Config
 		return $base . DIRECTORY_SEPARATOR . "pgo" . DIRECTORY_SEPARATOR . "work";
 	}
 
+	public function getPkgCacheDir() : string
+	{
+		$base = $this->getWorkDir();
+
+		return $base . DIRECTORY_SEPARATOR . "package_cache";
+	}
+
 	public function getJobDir(string $name = NULL) : string
 	{
 		$ret = $this->getWorkDir() . DIRECTORY_SEPARATOR . "job";

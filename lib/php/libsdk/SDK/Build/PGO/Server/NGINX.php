@@ -6,6 +6,7 @@ use SDK\Build\PGO\Interfaces;
 use SDK\Build\PGO\Abstracts;
 use SDK\Build\PGO\{Config as PGOConfig};
 use SDK\{Config as SDKConfig, Exception, FileOps};
+use SDK\Build\PGO\Tool\PackageWorkman;
 
 class NGINX extends Abstracts\Server implements Interfaces\Server\HTTP
 {
@@ -21,32 +22,6 @@ class NGINX extends Abstracts\Server implements Interfaces\Server\HTTP
 		$this->conf = $conf;
 		$this->base = $conf->getSrvDir(strtolower($this->name));
 		$this->php = $php;
-	}
-
-	protected function getDist() : void
-	{
-		$url = $this->conf->getSectionItem($this->name, "pkg_url");
-		$bn = basename($url);
-		$dist = SDKConfig::getTmpDir() . DIRECTORY_SEPARATOR . $bn;
-
-		echo "Fetching '$url'\n";
-		$this->download($url, $dist);
-
-		echo "Unpacking to '{$this->base}'\n";
-		try {
-			$this->unzip($dist, $this->conf->getSrvDir());
-		} catch (Throwable $e) {
-			unlink($dist);
-			throw $e;
-		}
-
-		$src_fn = $this->conf->getSrvDir() . DIRECTORY_SEPARATOR . basename($bn, ".zip");
-		if (!rename($src_fn, $this->base)) {
-			unlink($dist);
-			throw new Exception("Failed to rename '$src_fn' to '{$this->base}'");
-		}
-
-		unlink($dist);
 	}
 
 	protected function setupDist() : void
@@ -72,12 +47,16 @@ class NGINX extends Abstracts\Server implements Interfaces\Server\HTTP
 		);
 	}
 
+	public function prepareInit(PackageWorkman $pw, bool $force = false) : void
+	{
+		$url = $this->conf->getSectionItem($this->name, "pkg_url");
+		$pw->fetchAndUnzip($url, "nginx.zip", $this->conf->getSrvDir(), "nginx", $force);
+	}
+
 	public function init() : void
 	{
 		echo "Initializing " . $this->name . ".\n";
-		if (!is_dir($this->base)) {
-			$this->getDist();
-		}
+
 		$this->setupDist();
 
 		$this->upMe();

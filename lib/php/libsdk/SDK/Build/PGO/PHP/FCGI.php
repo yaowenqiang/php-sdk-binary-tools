@@ -6,6 +6,7 @@ use SDK\Build\PGO\Interfaces;
 use SDK\Build\PGO\Abstracts;
 use SDK\Build\PGO\Config as PGOConfig;
 use SDK\{Config as SDKConfig, Exception, FileOps};
+use SDK\Build\PGO\Tool\PackageWorkman;
 
 class FCGI extends Abstracts\PHP implements Interfaces\PHP
 {
@@ -49,13 +50,17 @@ class FCGI extends Abstracts\PHP implements Interfaces\PHP
 		return $env;
 	}
 
-	public function init()
+	public function prepareInit(PackageWorkman $pw, bool $force = false) : void
 	{
-		echo "Initializing PHP FCGI.\n";
-		echo "PHP FCGI initialization done.\n";
 	}
 
-	public function up()
+	public function init() : void
+	{
+/*		echo "Initializing PHP FCGI.\n";
+echo "PHP FCGI initialization done.\n";*/
+	}
+
+	public function up() : void
 	{
 		echo "Starting PHP FCGI.\n";
 
@@ -87,7 +92,7 @@ class FCGI extends Abstracts\PHP implements Interfaces\PHP
 		echo "PHP FCGI started.\n";
 	}
 
-	public function down(bool $force = false)
+	public function down(bool $force = false) : void
 	{
 		echo "Stopping PHP FCGI.\n";
 

@@ -6,7 +6,7 @@ use SDK\{Config as SDKConfig, Exception};
 use SDK\Build\PGO\Config as PGOConfig;
 use SDK\Build\PGO\Server\{MariaDB, NGINX};
 use SDK\Build\PGO\PHP;
-use SDK\Build\PGO\Tool\PGO;
+use SDK\Build\PGO\Tool\{PGO, PackageWorkman};
 use SDK\Build\PGO\Interfaces\TrainingCase;
 use SDK\Build\PGO\TrainingCaseIterator;
 
@@ -79,6 +79,7 @@ class Controller
 			$this->conf->getToolsDir(),
 			$this->conf->getHtdocs(),
 			$this->conf->getJobDir(),
+			$this->conf->getPkgCacheDir(),
 		);
 
 		foreach ($dirs as $dir) {
@@ -96,8 +97,20 @@ class Controller
 
 		$this->initWorkDirs();
 
-		foreach ($this->vitalizeSrv() as $srv) {
-			$srv->init($this->conf);
+		$pw = new PackageWorkman($this->conf);
+
+
+		$srvs = $this->vitalizeSrv();
+		foreach ($srvs as $srv) {
+			$srv->prepareInit($pw, $force);
+		}
+
+		foreach (new TrainingCaseIterator($this->conf) as $handler) {
+			$handler->prepareInit($pw, $force);
+		}
+
+		foreach ($srvs as $srv) {
+			$srv->init();
 			echo "\n";
 		}
 

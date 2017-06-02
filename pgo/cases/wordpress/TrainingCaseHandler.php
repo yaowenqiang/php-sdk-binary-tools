@@ -46,61 +46,17 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 		return $this->conf->getToolsDir() . DIRECTORY_SEPARATOR . "wp-cli.phar";
 	}
 
-	protected function getDist() : void
-	{
-		
-		if (!file_exists($this->getToolFn())) {
-			$url = "https://raw.github.com/wp-cli/builds/gh-pages/phar/wp-cli.phar";
-
-			echo "Fetching '$url'\n";
-			$this->download($url, $this->getToolFn());
-		}
-
-		/* Get wp zip. */
-		$wptest_dir = $src_fn = $this->conf->getToolSDir() . DIRECTORY_SEPARATOR . "wptest";
-		if (!file_exists($wptest_dir)) {
-			$url = "https://github.com/manovotny/wptest/archive/master.zip";
-			$bn = basename($url);
-			$dist = SDKConfig::getTmpDir() . DIRECTORY_SEPARATOR . "wptest.zip";
-
-			echo "Fetching '$url'\n";
-			$this->download($url, $dist);
-
-
-			//echo "Unpacking to '{$this->base}'\n";
-			echo "Unpacking to '" . $this->conf->getToolSDir() . "'\n";
-			try {
-				$this->unzip($dist, $this->conf->getToolSDir());
-			} catch (Throwable $e) {
-				unlink($dist);
-				throw $e;
-			}
-
-			$zip = new \ZipArchive;
-			$zip->open($dist);
-			$stat = $zip->statIndex(0);
-			$zip->close();
-			$unzipped_dir = $this->conf->getToolSDir() . DIRECTORY_SEPARATOR . $stat["name"];
-
-			if (!rename($unzipped_dir, $wptest_dir)) {
-				unlink($dist);
-				throw new Exception("Failed to rename '$unzipped_dir' to '$wptest_dir'");
-			}
-
-			unlink($dist);
-		}
-
-		if (!is_dir($this->base)) {
-			echo "Setting up in '{$this->base}'\n";
-			/* XXX Use host PHP for this. */
-			$php = new PHP\CLI($this->conf);
-			$php->exec($this->getToolFn() . " core download --force --path=" . $this->base);
-		}
-	}
-
 	protected function setupDist() : void
 	{
-		$this->getDist();
+		$cmd_path_arg = "--path=" . $this->base;
+
+		if (!is_dir($this->base)) {
+			echo "Setting up " . $this->getName() . " in '{$this->base}'\n";
+			/* XXX Use host PHP for this. */
+			$php = new PHP\CLI($this->conf);
+			$php->exec($this->getToolFn() . " core download --force $cmd_path_arg");
+			unset($php);
+		}
 		
 		$http_port = $this->getHttpPort();
 		$http_host = $this->getHttpHost();
@@ -115,6 +71,7 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 		$tpl_fn = $this->conf->getCasesTplDir($this->getName()) . DIRECTORY_SEPARATOR . "nginx.partial.conf";
 		$this->nginx->addServer($tpl_fn, $vars);
 
+
 		$php = new PHP\CLI($this->conf);
 
 		$this->maria->up();
@@ -122,8 +79,6 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 
 		$this->maria->query("DROP DATABASE IF EXISTS " . $this->getName());
 		$this->maria->query("CREATE DATABASE " . $this->getName());
-
-		$cmd_path_arg = "--path=" . $this->base;
 
 		$cmd = $this->getToolFn() . " core config --force --dbname=" . $this->getName() . " --dbuser=$db_user --dbpass=$db_pass --dbhost=$db_host:$db_port $cmd_path_arg";
 		$php->exec($cmd);
@@ -167,7 +122,7 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 		}
 
 		if (empty($lst)) {
-			printf("\033[31m WARNING: Training URL list is empty, check the regex!\033[0m\n");
+			printf("\033[31m WARNING: Training URL list is empty, check the regex and the possible previous error messages!\033[0m\n");
 		}
 
 		$fn = $this->getJobFilename();
@@ -175,6 +130,14 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 		if (strlen($s) !== file_put_contents($fn, $s)) {
 			throw new Exception("Couldn't write '$fn'.");
 		}
+	}
+
+	public function prepareInit(Tool\PackageWorkman $pw, bool $force = false) : void
+	{
+		$url = $this->conf->getSectionItem($this->getName(), "wp_cli_phar_url");
+		$pw->fetch($url, $this->getToolFn(), $force);
+		$url = $this->conf->getSectionItem($this->getName(), "wptest_zip_url");
+		$pw->fetchAndUnzip($url, "wptest.zip", $this->conf->getToolSDir(), "wptest", $force);
 	}
 
 	public function init() : void
