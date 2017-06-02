@@ -19,6 +19,10 @@ class Config
 
 	public function __construct(int $mode = MODE_RUN)
 	{
+		if (!$this->isInitialized()) {
+			$this->initWorkDir();
+		}
+
 		if (self::MODE_REINIT == $mode) {
 			$fn = $this->getWorkSectionsFilename();
 			if (file_exists($fn)) {
@@ -51,6 +55,20 @@ class Config
 			throw new Exception("Unknown config mode '$mode'.");
 		}
 	}
+
+	protected function initWorkDir() : void
+	{
+		if (!mkdir($this->getWorkDir())) {
+			throw new Exception("Failed to create " . $this->getWorkDir());
+		}
+	}
+
+	public function isInitialized()
+	{
+		/* XXX Could be some better check. */
+		return is_dir($this->getWorkDir());
+	}
+
 
 	public function getToolsDir() : string
 	{

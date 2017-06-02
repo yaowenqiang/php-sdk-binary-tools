@@ -74,7 +74,6 @@ class Controller
 	protected function initWorkDirs() : void
 	{
 		$dirs = array(
-			$this->conf->getWorkDir(),
 			$this->conf->getSrvDir(),
 			$this->conf->getToolsDir(),
 			$this->conf->getHtdocs(),
@@ -125,10 +124,7 @@ class Controller
 
 	public function isInitialized()
 	{
-		$base = getenv("PHP_SDK_ROOT_PATH");
-
-		/* XXX Could be some better check. */
-		return is_dir($base . DIRECTORY_SEPARATOR . "pgo" . DIRECTORY_SEPARATOR . "work");
+		return $this->conf->isinitialized();
 	}
 
 	public function train()
