@@ -137,7 +137,7 @@ trait FileOps
 
 		$ret = curl_exec($ch);
 		if (false === $ret) {
-			$err = curl_error();
+			$err = curl_error($ch);
 			curl_close($ch);
 			if ($dest_fn) {
 				fclose($fd);
@@ -156,7 +156,7 @@ trait FileOps
 	}/*}}}*/
 
 	/* TODO More detailed zip errors. */
-	protected function unzip(string $zip_fn, string $dest_fn) : void
+	protected function unzip(string $zip_fn, string $dest_fn, string $dest_dn = NULL) : void
 	{/*{{{*/
 		$zip = new \ZipArchive;
 
@@ -171,7 +171,30 @@ trait FileOps
 			throw new Exception("Failed to unzip '$zip_fn'.");
 		}
 
-		$zip->close();
+		/* Not robust, useful for zips containing one dir sibling only in the root. */
+		if ($dest_dn) {
+			$stat = $zip->statIndex(0);
+			if (false === $stat) {
+				$zip->close();
+				throw new Exception("Failed to stat first index in '$zip_fn'.");
+			}
+
+			$zip->close();
+
+			$name = $stat["name"];
+			if ("/" != substr($name, -1)) {
+				throw new Exception("'$name' is not a directory.");
+			}
+			$name = substr($name, 0, -1);
+
+			$old_dir = $dest_fn . DIRECTORY_SEPARATOR . $name;
+			$new_dir = $dest_fn . DIRECTORY_SEPARATOR . $dest_dn;
+			if (!$this->mv($old_dir, $new_dir)) {
+				throw new Exception("Failed to rename '$old_dir' to '$new_dir'.");
+			}
+		} else {
+			$zip->close();
+		}
 	}/*}}}*/
 }
 
