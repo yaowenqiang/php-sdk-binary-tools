@@ -195,6 +195,11 @@ trait FileOps
 
 			$old_dir = $dest_fn . DIRECTORY_SEPARATOR . $name;
 			$new_dir = $dest_fn . DIRECTORY_SEPARATOR . $dest_dn;
+			if (file_exists($new_dir)) {
+				if (!$this->rm($new_dir)) {
+					throw new Exception("Failed to remove '$new_dir'.");
+				}
+			}
 			/* if (!$this->mv($old_dir, $new_dir)) { */
 			if (!rename($old_dir, $new_dir)) {
 				throw new Exception("Failed to rename '$old_dir' to '$new_dir'.");
