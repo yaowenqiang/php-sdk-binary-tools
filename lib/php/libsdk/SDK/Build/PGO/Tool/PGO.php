@@ -74,7 +74,7 @@ class PGO
 					were found for some object - most
 					likely the object were not included in
 					any training scenario. */
-				unlink($pgc);
+				@unlink($pgc);
 			}
 		}
 	}
