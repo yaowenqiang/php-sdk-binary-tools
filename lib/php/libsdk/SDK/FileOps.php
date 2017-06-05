@@ -125,21 +125,39 @@ trait FileOps
 
 		if ($dest_fn) {
 			$fd = fopen($dest_fn, "w+");
+=======
+	protected function download(string $url, string $dest = NULL) : ?string
+	{
+		$fd = NULL;
+		$ch = curl_init($url);
+
+		if ($dest) {
+			$fd = fopen($dest, "w+");
+>>>>>>> master
 			curl_setopt($ch, CURLOPT_FILE, $fd); 
 		} else {
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		}
 
+<<<<<<< HEAD
 		curl_setopt($ch, CURLOPT_HEADER, false);
+=======
+>>>>>>> master
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
 		$ret = curl_exec($ch);
 		if (false === $ret) {
+<<<<<<< HEAD
 			$err = curl_error($ch);
 			curl_close($ch);
 			if ($dest_fn) {
+=======
+			$err = curl_error();
+			curl_close($ch);
+			if ($dest) {
+>>>>>>> master
 				fclose($fd);
 			}
 			throw new Exception($err);
@@ -147,12 +165,17 @@ trait FileOps
 
 		curl_close($ch);
 
+<<<<<<< HEAD
 		if ($dest_fn) {
+=======
+		if ($dest) {
+>>>>>>> master
 			fclose($fd);
 			return NULL;
 		}
 
 		return $ret;
+<<<<<<< HEAD
 	}/*}}}*/
 
 	/* TODO More detailed zip errors. */

@@ -67,5 +67,5 @@ if exist "%PHP_SDK_ROOT_PATH%\phpsdk-local.bat" (
 	cmd /k "!PHP_SDK_VC_SHELL_CMD! && %PHP_SDK_ROOT_PATH%\bin\phpsdk_setvars.bat && %PHP_SDK_ROOT_PATH%\bin\phpsdk_dumpenv.bat && set prompt=$P$_$+$$$S"
 )
 
-exit /b %ERRORLEVEL%
+exit /b !ERRORLEVEL!
 
