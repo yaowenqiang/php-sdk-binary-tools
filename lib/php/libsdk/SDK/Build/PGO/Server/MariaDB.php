@@ -24,31 +24,7 @@ class MariaDB extends Server implements DB
 
 	protected function setupDist()
 	{
-		/*$nginx_conf_in = $this->conf->getTplDir("nginx") . DIRECTORY_SEPARATOR . "nginx.conf";
-		$in = file_get_contents($nginx_conf_in);
-		$out = str_replace(
-			array(
-				"PHP_SDK_PGO_NGINX_HOST",
-				"PHP_SDK_PGO_NGINX_PORT",
-				"PHP_SDK_PGO_NGINX_DOCROOT",
-				"PHP_SDK_PGO_FCGI_HOST",
-				"PHP_SDK_PGO_FCGI_PORT",
-			),
-			array(
-				$this->conf->getSectionItem("nginx", "host"),
-				$this->conf->getSectionItem("nginx", "port"),
-				$this->base . DIRECTORY_SEPARATOR . "html",
-				$this->conf->getSectionItem("php", "fcgi", "host"),
-				$this->conf->getSectionItem("php", "fcgi", "port"),
-			),
-			$in
-			
-		);
-
-		$conf_fn = $this->base . DIRECTORY_SEPARATOR . "conf" . DIRECTORY_SEPARATOR . "nginx.conf";
-		if (!file_put_contents($conf_fn, $out)) {
-			throw new Exception("Couldn't write '$conf_fn'.");
-		}*/
+		/* pass */
 	}
 
 	public function prepareInit(PackageWorkman $pw, bool $force = false) : void
