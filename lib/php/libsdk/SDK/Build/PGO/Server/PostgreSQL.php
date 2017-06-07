@@ -90,13 +90,31 @@ class PostgreSQL extends Server implements DB
 		echo $this->name . " stopped.\n";
 	}
 
-	public function query(string $s)
+	public function createDb(string $db_name) : void
 	{
-		/*$ret = NULL;
+		$user = $this->conf->getSectionItem($this->name, "user");
+		$pass = $this->conf->getSectionItem($this->name, "pass");
+		$host = $this->conf->getSectionItem($this->name, "host");
+		$port = $this->conf->getSectionItem($this->name, "port");
 
-		$cwd = getcwd();
+		$cmd = $this->base . DIRECTORY_SEPARATOR . "bin" . DIRECTORY_SEPARATOR . "createdb.exe -h $host -p $port -U $user $db_name";
+		exec($cmd);
+	}
 
-		chdir($this->base);
+	public function dropDb(string $db_name) : void
+	{
+		$user = $this->conf->getSectionItem($this->name, "user");
+		$pass = $this->conf->getSectionItem($this->name, "pass");
+		$host = $this->conf->getSectionItem($this->name, "host");
+		$port = $this->conf->getSectionItem($this->name, "port");
+
+		$cmd = $this->base . DIRECTORY_SEPARATOR . "bin" . DIRECTORY_SEPARATOR . "dropdb.exe --if-exists -h $host -p $port -U $user $db_name";
+		exec($cmd);
+	}
+
+	public function query(string $s) : void
+	{
+		$ret = NULL;
 
 		$user = $this->conf->getSectionItem($this->name, "user");
 		$pass = $this->conf->getSectionItem($this->name, "pass");
@@ -104,9 +122,8 @@ class PostgreSQL extends Server implements DB
 		$port = $this->conf->getSectionItem($this->name, "port");
 
 		$pass_arg = $pass ? "-p$pass " : "";
-		$ret = shell_exec(".\bin\mysql.exe -u $user $pass_arg -h $host -P $port -e \"$s\"");
-
-		chdir($cwd);*/
+		$cmd = $this->base . DIRECTORY_SEPARATOR . "bin" . DIRECTORY_SEPARATOR . "psql.exe -h $host -p $port -U $user -d $db_name -c \"$s\"";
+		$ret = shell_exec($cmd);
 	}
 }
 
