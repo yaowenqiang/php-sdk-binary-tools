@@ -4,7 +4,7 @@ namespace SDK\Build\PGO;
 
 use SDK\{Config as SDKConfig, Exception};
 use SDK\Build\PGO\Config as PGOConfig;
-use SDK\Build\PGO\Server\{MariaDB, NGINX};
+use SDK\Build\PGO\Server\{MariaDB, NGINX, PostgreSQL};
 use SDK\Build\PGO\PHP;
 use SDK\Build\PGO\Tool\{PGO, PackageWorkman};
 use SDK\Build\PGO\Interfaces\TrainingCase;
@@ -37,6 +37,7 @@ class Controller
 			$this->conf->addSrv(new NGINX($this->conf, $php_fcgi_tcp));
 
 			$this->conf->addSrv(new MariaDB($this->conf));
+			$this->conf->addSrv(new PostgreSQL($this->conf));
 
 			$all = $this->conf->getSrv("all");
 		}

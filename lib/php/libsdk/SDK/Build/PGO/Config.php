@@ -37,7 +37,7 @@ class Config
 		$base = getenv("PHP_SDK_ROOT_PATH");
 
 		if (self::MODE_INIT == $mode) {
-			foreach (array("nginx", "mariadb", "php") as $i) {
+			foreach (array("nginx", "mariadb", "postgresql", "php") as $i) {
 				$this->importSectionFromDir($i, $this->getTplDir() . DIRECTORY_SEPARATOR . $i);
 			}
 		} else if (self::MODE_RUN == $mode) {
