@@ -77,7 +77,9 @@ class MariaDB extends Server implements DB
 
 		chdir($this->base);
 
-		$h = popen("start /b .\\bin\\mysqld.exe >nul 2>&1", "r");
+		$port = $this->conf->getSectionItem($this->name, "port");
+
+		$h = popen("start /b .\\bin\\mysqld.exe --port=$port >nul 2>&1", "r");
 		/* XXX error check*/
 		pclose($h);
 
@@ -96,8 +98,10 @@ class MariaDB extends Server implements DB
 
 		$user = $this->conf->getSectionItem($this->name, "user");
 		$pass = $this->conf->getSectionItem($this->name, "pass");
+		$host = $this->conf->getSectionItem($this->name, "host");
+		$port = $this->conf->getSectionItem($this->name, "port");
 
-		$cmd = sprintf(".\\bin\\mysqladmin.exe -u $user %s--shutdown_timeout=0 shutdown", ($pass ? "-p$pass " : ""));
+		$cmd = sprintf(".\\bin\\mysqladmin.exe --host=$host --port=$port -u $user %s--shutdown_timeout=0 shutdown", ($pass ? "-p$pass " : ""));
 		exec($cmd);
 
 		if ($force) {
