@@ -64,7 +64,7 @@ It is not required to hold the source in the PHP SDK directory. It could be usef
 - invoke `phpsdk-vc15-x64.bat`
 - `phpsdk_buildtree phpmaster`
 - `git clone https://github.com/php/php-src.git && cd php-src`, or fetch a zipball
-- `phpsdk_deps --update --branch master`
+- `phpsdk_deps --update --branch master`, use PHP-X.Y for a non master branch
 - do the build, eg. `buildconf && configure --enable-cli && nmake`
 
 More extensive documentation can be found on the [wiki](https://wiki.php.net/internals/windows/stepbystepbuild_sdk_2 "PHP wiki page").
@@ -112,4 +112,6 @@ The SDK tools are based on the KISS principle and should be kept so. Basic tools
 - Tools, based on MSYS2, only accept paths with forward slashes.
 - Both Visual C++ toolset and the Windows SDK components have to be installed for the PHP SDK to work properly. 
 - The VC++ toolset is still requried, even if another compiler, fe. clang, is intended to be used.
+- task.exe is not a console application, some systems might not propagate exit code except the batch is explicitly run from `cmd /c`, etc.
+
 
