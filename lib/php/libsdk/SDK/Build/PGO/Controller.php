@@ -91,6 +91,21 @@ class Controller
 		}
 	}
 
+	protected function prepareStandaloneTools(PackageWorkman $pw, bool $force = false) : void
+	{
+		$php = new PHP\CLI($this->conf);
+
+		$composer = $this->conf->getToolsDir() . DIRECTORY_SEPARATOR . "composer.phar";
+		if (!file_exists($composer) || $force) {
+			/* XXX this needs to go into the config, specifically for composer maybe even separate class. */
+			$url = "https://getcomposer.org/installer";
+			$tool = $this->conf->getToolsDir() . DIRECTORY_SEPARATOR . "composer-setup.php";
+			$pw->fetch($url, $tool, $force);
+			$php->exec("$tool --install-dir=" . $this->conf->getToolsDir());
+			unlink($tool);
+		}
+	}
+
 	public function init(bool $force = false)
 	{
 		echo "\nInitializing PGO training environment.\n\n";
@@ -99,6 +114,7 @@ class Controller
 
 		$pw = new PackageWorkman($this->conf);
 
+		$this->prepareStandaloneTools($pw, $force);
 
 		$srvs = $this->vitalizeSrv();
 		foreach ($srvs as $srv) {
