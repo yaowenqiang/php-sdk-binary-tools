@@ -44,8 +44,8 @@ class PostgreSQL extends Server implements DB
 			}
 			$cmd = $this->base . DIRECTORY_SEPARATOR . "bin" . DIRECTORY_SEPARATOR . "initdb.exe --auth=trust --nosync --username=$user --pwfile=$pwfile --encoding=UTF8 " . $this->data_dir;
 			//$cmd = $this->base . DIRECTORY_SEPARATOR . "bin" . DIRECTORY_SEPARATOR . "initdb.exe --auth=trust --nosync --username=$user --encoding=UTF8 " . $this->data_dir;
-			echo "$cmd\n";
-			echo file_get_contents($pwfile) . "\n";
+			/*echo "$cmd\n";
+			echo file_get_contents($pwfile) . "\n";*/
 			exec($cmd);
 			unlink($pwfile);
 		}
