@@ -79,7 +79,6 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 		$cmd = $this->getToolFn() . " site:install --overwrite --sample-data=learn --mysql-database=" . $this->getName() . " --mysql-login=$login --mysql-host=$db_host --mysql-port=$db_port --www=$www " . $this->getName();
 		//$cmd = $this->getToolFn() . " site:install --drop --overwrite --sample-data=default --mysql-database=" . $this->getName() . " --mysql-login=$login --mysql-host=$db_host --mysql-port=$db_port --www=$www " . $this->getName();
 		//$cmd = $this->getToolFn() . " site:create --clear-cache --disable-ssl --release=3.7 --http-port=$port --sample-data=testing --mysql-database=" . $this->getName() . " --mysql-login=$login --mysql-host=$db_host --mysql-port=$db_port --www=$www " . $this->getName();
-		echo "$cmd\n";
 		$php->exec($cmd);
 
 		if (is_dir($htdocs . DIRECTORY_SEPARATOR . "installation")) {
