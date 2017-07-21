@@ -27,12 +27,27 @@ class PostgreSQL extends Server implements DB
 	protected function setupDist()
 	{
 		$user = $this->conf->getSectionItem($this->name, "user");
+		if (!$user) {
+			$user = trim(shell_exec("pwgen -1 -s 8"));
+			$this->conf->setSectionItem($this->getName(), "user", $user);
+		}
 		$pass = $this->conf->getSectionItem($this->name, "pass");
+		if (!$pass) {
+			$pass = trim(shell_exec("pwgen -1 -s 8"));
+			$this->conf->setSectionItem($this->getName(), "pass", $pass);
+		}
 
 		if (!is_dir($this->data_dir)) {
-			/* TODO No user pass yet. */
-			$cmd = $this->base . DIRECTORY_SEPARATOR . "bin" . DIRECTORY_SEPARATOR . "initdb.exe --nosync --username $user --encoding=UTF-8 " . $this->data_dir;
+			$pwfile = tempnam(sys_get_temp_dir(), "tmp");
+			if (strlen($pass) !== file_put_contents($pwfile, $pass)) {
+				throw new Exception("Couldn't write '$pwfile'.");
+			}
+			$cmd = $this->base . DIRECTORY_SEPARATOR . "bin" . DIRECTORY_SEPARATOR . "initdb.exe --auth=trust --nosync --username=$user --pwfile=$pwfile --encoding=UTF8 " . $this->data_dir;
+			//$cmd = $this->base . DIRECTORY_SEPARATOR . "bin" . DIRECTORY_SEPARATOR . "initdb.exe --auth=trust --nosync --username=$user --encoding=UTF8 " . $this->data_dir;
+			echo "$cmd\n";
+			echo file_get_contents($pwfile) . "\n";
 			exec($cmd);
+			unlink($pwfile);
 		}
 	}
 
@@ -104,7 +119,7 @@ class PostgreSQL extends Server implements DB
 	public function dropDb(string $db_name) : void
 	{
 		$user = $this->conf->getSectionItem($this->name, "user");
-		$pass = $this->conf->getSectionItem($this->name, "pass");
+		//$pass = $this->conf->getSectionItem($this->name, "pass");
 		$host = $this->conf->getSectionItem($this->name, "host");
 		$port = $this->conf->getSectionItem($this->name, "port");
 
@@ -112,17 +127,17 @@ class PostgreSQL extends Server implements DB
 		exec($cmd);
 	}
 
-	public function query(string $s) : void
+	public function query(string $s, string $db = NULL) : void
 	{
 		$ret = NULL;
 
 		$user = $this->conf->getSectionItem($this->name, "user");
-		$pass = $this->conf->getSectionItem($this->name, "pass");
+		//$pass = $this->conf->getSectionItem($this->name, "pass");
 		$host = $this->conf->getSectionItem($this->name, "host");
 		$port = $this->conf->getSectionItem($this->name, "port");
 
-		$pass_arg = $pass ? "-p$pass " : "";
-		$cmd = $this->base . DIRECTORY_SEPARATOR . "bin" . DIRECTORY_SEPARATOR . "psql.exe -h $host -p $port -U $user -d $db_name -c \"$s\"";
+		$db_arg = $db ? "-d $db" : "";
+		$cmd = $this->base . DIRECTORY_SEPARATOR . "bin" . DIRECTORY_SEPARATOR . "psql.exe -h $host -p $port -U $user $db_arg -c \"$s\"";
 		$ret = shell_exec($cmd);
 	}
 }

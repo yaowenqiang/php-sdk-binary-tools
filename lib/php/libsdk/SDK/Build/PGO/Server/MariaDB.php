@@ -90,7 +90,7 @@ class MariaDB extends Server implements DB
 		echo $this->name . " stopped.\n";
 	}
 
-	public function query(string $s)
+	public function query(string $s, string $db = NULL) : void
 	{
 		$ret = NULL;
 
