@@ -37,7 +37,8 @@ class Controller
 			$this->conf->addSrv(new NGINX($this->conf, $php_fcgi_tcp));
 
 			$this->conf->addSrv(new MariaDB($this->conf));
-			$this->conf->addSrv(new PostgreSQL($this->conf));
+			/* Uncomment to enable PostgreSQL*/
+			/* $this->conf->addSrv(new PostgreSQL($this->conf));*/
 
 			$all = $this->conf->getSrv("all");
 		}
