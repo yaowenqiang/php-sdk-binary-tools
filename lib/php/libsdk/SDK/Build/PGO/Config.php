@@ -8,7 +8,8 @@ class Config
 {
 	const MODE_INIT = 0;
 	const MODE_RUN = 1;
-	const MODE_REINIT = 2;
+	const MODE_REINIT = 2; /* currently unused */
+	const MODE_CHECK_INIT = 3;
 
 	protected $mode;
 	protected $last_port = 8081;
@@ -19,6 +20,11 @@ class Config
 
 	public function __construct(int $mode = MODE_RUN)
 	{
+		if (self::MODE_CHECK_INIT == $mode) {
+			// XXX The check is simple right now, so this is sufficient. 
+			return;
+		}
+
 		if (!$this->isInitialized()) {
 			$this->initWorkDir();
 		}
@@ -35,7 +41,6 @@ class Config
 
 
 		$base = getenv("PHP_SDK_ROOT_PATH");
-
 		if (self::MODE_INIT == $mode) {
 			foreach (array("nginx", "mariadb", "postgresql", "php") as $i) {
 				$this->importSectionFromDir($i, $this->getTplDir() . DIRECTORY_SEPARATOR . $i);

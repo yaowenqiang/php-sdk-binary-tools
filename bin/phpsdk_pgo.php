@@ -6,8 +6,8 @@ use SDK\Config;
 use SDK\Exception;
 use SDK\Build\PGO\Controller;
 
-$sopt = "itudhs:f";
-$lopt = array("init", "train", "up", "down", "help", "scenario:", "force",);
+$sopt = "itudhs:fr";
+$lopt = array("init", "train", "up", "down", "help", "scenario:", "force", "ready");
 
 $cmd = NULL;
 /* TODO For now we simply check the current php build, this could be extended to take arbitrary binaries. */
@@ -23,6 +23,9 @@ try {
 		case "i":
 		case "init":
 			$cmd = "init";
+			break;
+		case "ready":
+			$cmd = "check_init";
 			break;
 		case "t":
 		case "train":
@@ -57,20 +60,27 @@ try {
 
 	$deps_root = Config::getDepsLocalPath();
 
-	/* XXX Need these checks for more safety, as long as the dist zipballs are not supported. */
-	if (!file_exists("Makefile")) {
-		throw new Exception("Makefile not found. Arbitrary php snapshots are not supported yet, switch to the php source dir.");
+	if ("check_init" != $cmd) {
+		/* XXX Need these checks for more safety, as long as the dist zipballs are not supported. */
+		if (!file_exists("Makefile")) {
+			throw new Exception("Makefile not found. Arbitrary php snapshots are not supported yet, switch to the php source dir.");
+		}
+		if (preg_match(",BUILD_DIR=(.+),", file_get_contents("Makefile"), $m)) {
+			$php_root = trim($m[1]);
+		}
+		if (!$php_root || !file_exists($php_root)) {
+			throw new Exception("Invalid php root dir encountered '$php_root'.");
+		}
 	}
-	if (preg_match(",BUILD_DIR=(.+),", file_get_contents("Makefile"), $m)) {
-		$php_root = trim($m[1]);
-	}
-	if (!$php_root || !file_exists($php_root)) {
-		throw new Exception("Invalid php root dir encountered '$php_root'.");
-	}
-	//var_dump($cmd, $deps_root, $php_root);
 
 	$controller = new Controller($cmd, $scenario);
 	$controller->handle($force);
+
+	if ("check_init" == $cmd) {
+		/* 0 for success, fail otherwise. */
+		$ret = ($controller->isInitialized() === false);
+		exit((int)$ret);
+	}
 
 	/*$env = getenv();
 	$env["PATH"] = $deps_root . DIRECTORY_SEPARATOR . "bin;" . $env["PATH"];

@@ -8,7 +8,7 @@ if "%PHP_SDK_PHP_CMD%"=="" (
 	)
 )
 
-call %PHP_SDK_PHP_CMD% %PHP_SDK_BIN_PATH%\phpsdk_pgo.php %*
+cmd /c %PHP_SDK_PHP_CMD% %PHP_SDK_BIN_PATH%\phpsdk_pgo.php %*
 
-exit /b
+exit /b %errorlevel%
 

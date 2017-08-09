@@ -46,12 +46,35 @@ class Controller
 		return $all;
 	}
 
+	protected function setupConfig($cmd)
+	{
+		switch ($cmd) {
+			default:
+				throw new Exception("Unknown action '{$cmd}'.");
+				break;
+			case "check_init":
+				$cnf = new PGOConfig(PGOConfig::MODE_CHECK_INIT);
+				break;
+			case "init":
+				$cnf = new PGOConfig(PGOConfig::MODE_INIT);
+				break;
+			case "train":
+			case "up":
+			case "down":
+				$cnf = new PGOConfig(PGOConfig::MODE_RUN);
+		}
+		$cnf->setScenario($this->scenario);
+
+		return $cnf;
+	}
+
 	public function handle($force)
 	{
-		$mode = (int)("init" !== $this->cmd);
+		/*$mode = (int)("init" !== $this->cmd);
 		$mode = (PGOConfig::MODE_INIT == $mode && $force) ? PGOConfig::MODE_REINIT : $mode;
 		$this->conf = new PGOConfig("init" !== $this->cmd);
-		$this->conf->setScenario($this->scenario);
+		$this->conf->setScenario($this->scenario);*/
+		$this->conf = $this->setupConfig($this->cmd);
 
 		switch ($this->cmd) {
 		default:
@@ -69,6 +92,9 @@ class Controller
 
 		case "down":
 			$this->down($force);
+			break;
+		case "check_init":
+			// pass
 			break;
 		}
 	}
