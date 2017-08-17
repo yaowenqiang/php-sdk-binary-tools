@@ -74,12 +74,16 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 			rename($htdocs . DIRECTORY_SEPARATOR . "_installation", $htdocs . DIRECTORY_SEPARATOR . "installation");
 		}
 
+		$env = array(
+			"PATH" => $this->conf->getSrvDir(strtolower($this->maria->getName())) . DIRECTORY_SEPARATOR . "bin",
+		);
+
 		$www = $this->conf->getCaseWorkDir();
 		$login = $db_pass ? "$db_user:$db_pass" : $db_user;
 		$cmd = $this->getToolFn() . " site:install --overwrite --sample-data=learn --mysql-database=" . $this->getName() . " --mysql-login=$login --mysql-host=$db_host --mysql-port=$db_port --www=$www " . $this->getName();
 		//$cmd = $this->getToolFn() . " site:install --drop --overwrite --sample-data=default --mysql-database=" . $this->getName() . " --mysql-login=$login --mysql-host=$db_host --mysql-port=$db_port --www=$www " . $this->getName();
 		//$cmd = $this->getToolFn() . " site:create --clear-cache --disable-ssl --release=3.7 --http-port=$port --sample-data=testing --mysql-database=" . $this->getName() . " --mysql-login=$login --mysql-host=$db_host --mysql-port=$db_port --www=$www " . $this->getName();
-		$php->exec($cmd);
+		$php->exec($cmd, NULL, $env);
 
 		if (is_dir($htdocs . DIRECTORY_SEPARATOR . "installation")) {
 			rename($htdocs . DIRECTORY_SEPARATOR . "installation", $htdocs . DIRECTORY_SEPARATOR . "_installation");

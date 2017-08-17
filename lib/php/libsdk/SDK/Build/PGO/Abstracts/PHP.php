@@ -146,7 +146,7 @@ abstract class PHP
 		return $construct;
 	}
 
-	public function exec(string $php_cmd, string $args = NULL) : int
+	public function exec(string $php_cmd, string $args = NULL, array $extra_env = array()) : int
 	{
 		$env = $this->createEnv();
 		$exe  = $this->getExeFilename();
@@ -155,6 +155,20 @@ abstract class PHP
 		$cert_path = getenv("PHP_SDK_ROOT_PATH") . "\\msys2\\usr\\ssl\\cert.pem";
 		$ini .= " -d curl.cainfo=$cert_path";
 
+		foreach ($env as $k0 => &$v0) {
+			foreach ($extra_env as $k1 => $v1) {
+				if (strtoupper($k0) == strtoupper($k1)) {
+					/* XXX some more things could require extra handling. */
+					if (strtoupper($k0) == "PATH") {
+						$v0 = "$v1;$v0";
+					} else {
+						$v0 = $v1;
+					}
+					break;
+				}
+			}
+		}
+
 		$cmd = "$exe -n -c $ini " . ($args ? "$args " : "") . "$php_cmd";
 
 		$desc = array(
@@ -162,7 +176,7 @@ abstract class PHP
 			1 => array("file", "php://stdout", "w"),
 			2 => array("file", "php://stderr", "w")
 		);
-		$p = proc_open($cmd, $desc, $pipes, $this->getRootDir(), $this->createEnv());
+		$p = proc_open($cmd, $desc, $pipes, $this->getRootDir(), $env);
 
 		return proc_close($p);
 	}

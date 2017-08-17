@@ -80,8 +80,12 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 		$this->maria->query("DROP DATABASE IF EXISTS " . $this->getName());
 		$this->maria->query("CREATE DATABASE " . $this->getName());
 
+		$env = array(
+			"PATH" => $this->conf->getSrvDir(strtolower($this->maria->getName())) . DIRECTORY_SEPARATOR . "bin",
+		);
+
 		$cmd = $this->getToolFn() . " core config --force --dbname=" . $this->getName() . " --dbuser=$db_user --dbpass=$db_pass --dbhost=$db_host:$db_port $cmd_path_arg";
-		$php->exec($cmd);
+		$php->exec($cmd, NULL, $env);
 
 		$site_adm = trim(shell_exec("pwgen -1 -s 8"));
 		$this->conf->setSectionItem($this->getName(), "site_admin_user", $site_adm);
@@ -90,13 +94,13 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 		//save admin user and pass to config
 		//$cmd = $this->getToolFn() . " core install --url=$http_host:$http_port --title=hello --admin_user=$site_adm_user --admin_password=$site_adm_pw --admin_email=a@bc.de --skip-email --path=" . $this->base;
 		$cmd = $this->getToolFn() . " core install --url=$http_host:$http_port --title=hello --admin_user=$site_adm --admin_password=$site_pw --admin_email=ostc@test.abc --skip-email $cmd_path_arg";
-		$php->exec($cmd);
+		$php->exec($cmd, NULL, $env);
 
 		$cmd = $this->getToolFn() . " plugin install wordpress-importer --activate --allow-root $cmd_path_arg";
-		$php->exec($cmd);
+		$php->exec($cmd, NULL, $env);
 
 		$cmd = $this->getToolFn() . " import " . $this->conf->getToolSDir() . DIRECTORY_SEPARATOR . "wptest/wptest.xml --authors=create --allow-root $cmd_path_arg";
-		$php->exec($cmd);
+		$php->exec($cmd, NULL, $env);
 
 		$this->nginx->down(true);
 		$this->maria->down(true);
