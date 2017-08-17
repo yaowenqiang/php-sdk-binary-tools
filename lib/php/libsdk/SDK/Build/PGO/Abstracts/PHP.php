@@ -36,7 +36,7 @@ abstract class PHP
 		$env = getenv();
 
 		if (!$this->isDist()) {
-			$deps_root = SDKConfig::getDepsLocalPath();
+			$deps_root = SDKConfig::getDepsLocalPath(true);
 			foreach ($env as $k => $v) {
 				if (strtoupper($k) == "PATH") {
 					$env[$k] = "$deps_root" . DIRECTORY_SEPARATOR . "bin;" . $env[$k];
