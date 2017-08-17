@@ -82,7 +82,7 @@ class MariaDB extends Server implements DB
 
 		if ($force) {
 			sleep(1);
-			exec("taskkill /f /im nginx.exe >nul 2>&1");
+			exec("taskkill /f /im mysqld.exe >nul 2>&1");
 		}
 
 		chdir($cwd);
