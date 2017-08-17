@@ -104,7 +104,7 @@ class MariaDB extends Server implements DB
 		$port = $this->conf->getSectionItem($this->name, "port");
 
 		$pass_arg = $pass ? "-p$pass " : "";
-		$ret = shell_exec(".\bin\mysql.exe -u $user $pass_arg -h $host -P $port -e \"$s\"");
+		$ret = shell_exec(".\\bin\\mysql.exe -u $user $pass_arg -h $host -P $port -e \"$s\"");
 
 		chdir($cwd);
 	}
