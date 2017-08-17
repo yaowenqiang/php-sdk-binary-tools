@@ -112,7 +112,7 @@ The SDK tools are based on the KISS principle and should be kept so. Basic tools
 - run `phpsdk_pgo --init`
 
 ## Creating a PGO build
-- create desired PHP build using `--enable-pgi` 
+- compile PHP configured using `--enable-pgi`
 - run `phpsdk_pgo --train`
 - run `nmake clean-pgo`
 - rebuild PHP `--with-pgo`
