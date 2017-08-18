@@ -155,6 +155,7 @@ abstract class PHP
 		$cert_path = getenv("PHP_SDK_ROOT_PATH") . "\\msys2\\usr\\ssl\\cert.pem";
 		$ini .= " -d curl.cainfo=$cert_path";
 
+		$spent_key = array();
 		foreach ($env as $k0 => &$v0) {
 			foreach ($extra_env as $k1 => $v1) {
 				if (strtoupper($k0) == strtoupper($k1)) {
@@ -164,9 +165,17 @@ abstract class PHP
 					} else {
 						$v0 = $v1;
 					}
+					$spent_key[] = $k1;
 					break;
 				}
 			}
+		}
+
+		foreach ($extra_env as $k => $v) {
+			if (in_array($k, $spent_key)) {
+				continue;
+			}
+			$env[$k] = $v;
 		}
 
 		$cmd = "$exe -n -c $ini " . ($args ? "$args " : "") . "$php_cmd";
