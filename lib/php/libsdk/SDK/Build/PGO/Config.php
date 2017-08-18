@@ -71,7 +71,7 @@ class Config
 	public function isInitialized()
 	{
 		/* XXX Could be some better check. */
-		return is_dir($this->getWorkDir()) && is_file($this->getWorkDir() . DIRECTORY_SEPARATOR . "phpsdk_pgo.json");
+		return is_dir($this->getWorkDir());
 	}
 
 
