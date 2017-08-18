@@ -45,7 +45,12 @@ class TrainingCaseIterator implements \Iterator
 	{
 		$base =  $this->items[$this->idx];
 		$ns = basename($base);
-		$this->conf->importSectionFromDir($ns, $base);
+
+		/* Don't overwrite generated config. */
+		$it = $this->conf->getSectionItem($ns);
+		if (!$it) {
+			$this->conf->importSectionFromDir($ns, $base);
+		}
 
 		require_once $this->getHandlerFilename($base);
 
