@@ -44,6 +44,8 @@ class Training
 
 				$ch[$i] = curl_init($u);
 
+				curl_setopt($ch[$i], CURLOPT_CONNECTTIMEOUT_MS, 500000);
+				curl_setopt($ch[$i], CURLOPT_TIMEOUT_MS, 500000);
 				curl_setopt($ch[$i], CURLOPT_RETURNTRANSFER, true);
 
 				curl_multi_add_handle($mh, $ch[$i]);
