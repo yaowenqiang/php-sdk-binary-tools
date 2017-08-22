@@ -74,13 +74,21 @@ class NGINX extends Abstracts\Server implements Interfaces\Server\HTTP
 
 		chdir($this->base);
 
-		$h = popen("start /b .\\nginx.exe", "r");
-		/* XXX error check*/
+		$h = popen("start /b .\\nginx.exe 2>&1", "r");
+		if (!is_resource($h)) {
+			chdir($cwd);
+			throw new Exception("Failed to start MariaDB.");
+		}
+		sleep(3);
+
+/*		while (!feof($h)) {
+			echo fread($h, 1024);
+		}*/
+	
 		pclose($h);
 
 		chdir($cwd);
 
-		sleep(3);
 		echo $this->name . " started.\n";
 	}
 

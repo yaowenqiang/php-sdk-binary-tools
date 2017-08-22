@@ -55,13 +55,22 @@ class MariaDB extends Server implements DB
 
 		$port = $this->conf->getSectionItem($this->name, "port");
 
-		$h = popen("start /b .\\bin\\mysqld.exe --port=$port >nul 2>&1", "r");
-		/* XXX error check*/
+		//$h = popen("start /b .\\bin\\mysqld.exe --port=$port >nul 2>&1", "r");
+		$h = popen("start /b .\\bin\\mysqld.exe --port=$port 2>&1", "r");
+
+		if (!is_resource($h)) {
+			chdir($cwd);
+			throw new Exception("Failed to start MariaDB.");
+		}
+		sleep(3);
+
+		while (!feof($h)) {
+			echo fread($h, 1024);
+		}
 		pclose($h);
 
 		chdir($cwd);
 
-		sleep(3);
 		echo $this->name . " started.\n";
 	}
 

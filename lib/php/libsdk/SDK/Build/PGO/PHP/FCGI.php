@@ -69,23 +69,24 @@ echo "PHP FCGI initialization done.\n";*/
 		$host = $this->conf->getSectionItem("php", "fcgi", "host");
 		$port = $this->conf->getSectionItem("php", "fcgi", "port");
 
-		$cmd = "start /b $exe -n -c $ini -b $host:$port";
+		$cmd = "start /b $exe -n -c $ini -b $host:$port 2>&1";
 
 		$desc = array(
 			0 => array("file", "php://stdin", "r"),
 			1 => array("file", "php://stdout", "w"),
-			2 => array("file", "php://stderr", "w")
+			2 => array("file", "php://stderr", "w"),
 		);
 
 		$p = proc_open($cmd, $desc, $pipes, $this->getRootDir(), $this->createEnv());
+
+		/* Give some time, it might be slow on PGI enabled proc. */
+		sleep(3);
+
 		$c = proc_close($p);
 
 		if ($c) {
 			throw new Exception("PHP FCGI process exited with code '$c'.");
 		}
-
-		/* Give some time, it might be slow on PGI enabled proc. */
-		sleep(3);
 
 		/* XXX for Opcache, setup also file cache. */
 
