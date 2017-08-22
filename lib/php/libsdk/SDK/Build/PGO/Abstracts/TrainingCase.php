@@ -47,6 +47,9 @@ class TrainingCase
 					$ok = false;
 				}
 			}
+			foreach($stat["non_200_stats"] as $st) {
+				echo "Code: $st[http_code], URL: $st[url]\n";
+			}
 			if (!$ok) {
 				printf("\033[31m WARNING: Not all HTTP responses have indicated success, the PGO data might be unsuitable!\033[0m\n");
 			}

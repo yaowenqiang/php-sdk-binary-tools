@@ -31,7 +31,7 @@ class Training
 		$url_list_fn = $this->t_case->getJobFilename();
 		$a = file($url_list_fn, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
-		$stat = array("http_code" => array(),);
+		$stat = array("http_code" => array(), "non_200_stats" => array());
 
 		for ($k = 0; $k < $max_runs; $k++) {
 			echo ".";
@@ -47,6 +47,8 @@ class Training
 				curl_setopt($ch[$i], CURLOPT_CONNECTTIMEOUT_MS, 500000);
 				curl_setopt($ch[$i], CURLOPT_TIMEOUT_MS, 500000);
 				curl_setopt($ch[$i], CURLOPT_RETURNTRANSFER, true);
+				/* ??? */
+				/*curl_setopt($ch[$i], CURLOPT_FOLLOWLOCATION, true);*/
 
 				curl_multi_add_handle($mh, $ch[$i]);
 			}
@@ -69,11 +71,17 @@ class Training
 				curl_multi_remove_handle($mh, $h);
 
 				/* Gather some stats */
-				$http_code = curl_getinfo($h, CURLINFO_HTTP_CODE);
+				$info = curl_getinfo($h);
+				$http_code = $info["http_code"];
+
 				if (isset($stat["http_code"][$http_code])) {
 					$stat["http_code"][$http_code]++;
 				} else {
-					$stat["http_code"][$http_code] = 0;
+					$stat["http_code"][$http_code] = 1;
+				}
+
+				if (200 != $http_code) {
+					$stat["non_200_stats"][] = $info;
 				}
 
 				curl_close($h);
