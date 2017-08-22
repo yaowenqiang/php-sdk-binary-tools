@@ -80,6 +80,7 @@ class NGINX extends Abstracts\Server implements Interfaces\Server\HTTP
 
 		chdir($cwd);
 
+		sleep(3);
 		echo $this->name . " started.\n";
 	}
 

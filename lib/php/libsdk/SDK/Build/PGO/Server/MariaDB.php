@@ -61,6 +61,7 @@ class MariaDB extends Server implements DB
 
 		chdir($cwd);
 
+		sleep(3);
 		echo $this->name . " started.\n";
 	}
 

@@ -85,7 +85,7 @@ echo "PHP FCGI initialization done.\n";*/
 		}
 
 		/* Give some time, it might be slow on PGI enabled proc. */
-		sleep(1);
+		sleep(3);
 
 		/* XXX for Opcache, setup also file cache. */
 
