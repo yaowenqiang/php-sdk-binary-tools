@@ -125,6 +125,7 @@ abstract class PHP
 			$ret,
 			array(
 				$this->conf->buildTplVarName("php", "extension_dir") => $this->php_ext_root,
+				$this->conf->buildTplVarName("php", "error_log") => $this->getRootDir() . DIRECTORY_SEPARATOR . "error.log",
 			)
 		);
 
