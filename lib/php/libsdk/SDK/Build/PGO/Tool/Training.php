@@ -60,7 +60,7 @@ class Training
 			} while ($mrc == CURLM_CALL_MULTI_PERFORM);
 
 			while ($active && $mrc == CURLM_OK) {
-				if (curl_multi_select($mh) != -1) {
+				if (curl_multi_select($mh, 42.0) != -1) {
 					do {
 						$mrc = curl_multi_exec($mh, $active);
 					} while ($mrc == CURLM_CALL_MULTI_PERFORM);
