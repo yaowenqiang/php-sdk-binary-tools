@@ -8,5 +8,23 @@
 	"fcgi:env": {
 		"PHP_FCGI_CHILDREN": 8,
 		"PHP_FCGI_MAX_REQUESTS": 128
+	},
+	
+	"scenario":
+	{
+		"cache": {
+			"ini": {
+				"x64": {
+					"opcache.memory_consumption": 256,
+					"opcache.interned_strings_buffer": 16,
+					"opcache.max_accelerated_files": 8000
+				},
+				"x86": {
+					"opcache.memory_consumption": 64,
+					"opcache.interned_strings_buffer": 8,
+					"opcache.max_accelerated_files": 4000
+				}
+			}
+		}
 	}
 }

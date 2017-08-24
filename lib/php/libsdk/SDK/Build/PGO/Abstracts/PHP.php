@@ -115,18 +115,42 @@ abstract class PHP
 		return true;
 	}
 
+	public function is64bit() : bool
+	{
+		$cli = new CLI($this->conf, $this->scenario);
+
+		$out = shell_exec($cli->getExeFilename() . " -n -v");
+
+		if (preg_match(",x64,", $out, $m) > 0) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/* Need to cleanup it somewhere. */
 	public function getIniFilename()
 	{
 		$ret = tempnam(sys_get_temp_dir(), "ini");
 
+		$tpl_vars = array(
+			$this->conf->buildTplVarName("php", "extension_dir") => $this->php_ext_root,
+			$this->conf->buildTplVarName("php", "error_log") => $this->getRootDir() . DIRECTORY_SEPARATOR . "pgo_run_error.log",
+		);
+
+		$k = $this->is64bit() ? "x64" : "x86";
+		$scenario_vars = (array)$this->conf->getSectionItem("php", "scenario", $this->scenario, "ini", $k);
+		if ($scenario_vars) {
+			foreach ($scenario_vars as $k => $v) {
+				//$tpl_vars[$this->conf->buildTplVarName("php", "scenario", $this->scenario, str_replace(array(".", "-"), "_", $k))] = $v;
+				$tpl_vars[$this->conf->buildTplVarName("php", str_replace(array(".", "-"), "_", $k))] = $v;
+			}
+		}
+
 		$this->conf->processTplFile(
 			$this->getIniTplFilename(),
 			$ret,
-			array(
-				$this->conf->buildTplVarName("php", "extension_dir") => $this->php_ext_root,
-				$this->conf->buildTplVarName("php", "error_log") => $this->getRootDir() . DIRECTORY_SEPARATOR . "pgo_run_error.log",
-			)
+			$tpl_vars
 		);
 
 		return $ret;
