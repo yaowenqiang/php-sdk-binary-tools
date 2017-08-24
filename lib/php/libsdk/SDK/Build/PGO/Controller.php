@@ -177,7 +177,7 @@ class Controller
 			throw new Exception("PGO training environment is not initialized.");
 		}
 
-		echo "\nStarting PGO training.\n\n";
+		echo "\nStarting PGO training using scenario '{$this->scenario}'.\n\n";
 		$this->up();
 
 		/* Clean the PGO db files, only needed once.
