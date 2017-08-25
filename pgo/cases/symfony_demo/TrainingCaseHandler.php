@@ -69,8 +69,6 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 		$url = "http://" . $this->getHttpHost() . ":" . $this->getHttpPort() . "/en/blog/";
 		$s = file_get_contents($url);
 
-		$this->nginx->down(true);
-
 		echo "Generating training urls.\n";
 
 		$lst = array();
@@ -78,7 +76,7 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 			foreach ($m[1] as $u) {
 				if (strlen($u) >= 2 && "/" == $u[0] && "/" != $u[1] && !in_array(substr($u, -3), array("css", "xml", "ico"))) {
 					$ur = "http://" . $this->getHttpHost() . ":" . $this->getHttpPort() . $u;
-					if (!in_array($ur, $lst)) {
+					if (!in_array($ur, $lst) && $this->probeUrl($ur)) {
 						$lst[] = $ur;
 					}
 				}
@@ -88,6 +86,8 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 		if (empty($lst)) {
 			printf("\033[31m WARNING: Training URL list is empty, check the regex and the possible previous error messages!\033[0m\n");
 		}
+
+		$this->nginx->down(true);
 
 		$fn = $this->getJobFilename();
 		$s = implode("\n", $lst);

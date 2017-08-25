@@ -90,8 +90,6 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 		$url = "http://" . $this->getHttpHost() . ":" . $this->getHttpPort();
 		$s = file_get_contents($url);
 
-		$this->nginx->down(true);
-
 		echo "Generating training urls.\n";
 
 		$lst = array();
@@ -104,12 +102,14 @@ class TrainingCaseHandler extends Abstracts\TrainingCase implements Interfaces\T
 						$u
 					);
 					$ur = "http://" . $this->getHttpHost() . ":" . $this->getHttpPort() . $u;
-					if (!in_array($ur, $lst)) {
+					if (!in_array($ur, $lst) && $this->probeUrl($ur)) {
 						$lst[] = $ur;
 					}
 				}
 			}
 		}
+
+		$this->nginx->down(true);
 
 		if (empty($lst)) {
 			printf("\033[31m WARNING: Training URL list is empty, check the regex and the possible previous error messages!\033[0m\n");

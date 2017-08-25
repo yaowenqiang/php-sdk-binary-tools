@@ -38,19 +38,14 @@ class TrainingCase
 		$training->run($max_runs, $stat);
 
 		if ($this->getType() == "web") {
-			$ok = true;
 			echo "HTTP responses:\n";
 			foreach ($stat["http_code"] as $code => $num) {
 				printf("    %d received %d times\n", $code, $num);
-				/* TODO extend list. */
-				if (200 != $code) {
-					$ok = false;
+			}
+			if (count($stat["not_ok"]) > 0) {
+				foreach($stat["not_ok"] as $st) {
+					echo "Code: $st[http_code], URL: $st[url]", ($st["redirect_url"] ? ", Redirected to: $st[redirect_url]" : ""), "\n";
 				}
-			}
-			foreach($stat["non_200_stats"] as $st) {
-				echo "Code: $st[http_code], URL: $st[url], Redirected to: $st[redirect_url]\n";
-			}
-			if (!$ok) {
 				printf("\033[31m WARNING: Not all HTTP responses have indicated success, the PGO data might be unsuitable!\033[0m\n");
 			}
 		}
@@ -123,6 +118,34 @@ class TrainingCase
 	public function getDbPort() : string
 	{
 		return $this->getDbConf("port");
+	}
+
+	public function httpStatusOk(int $status) : bool
+	{
+		$ok = array();
+
+		$ok = array_merge($ok, range(200, 206));
+		$ok = array_merge($ok, range(300, 307));
+
+		return in_array($status, $ok);
+	}
+
+	public function probeUrl(string $url) : bool
+	{
+		$ret = false;
+		$c = curl_init($url);
+
+		curl_setopt($c, CURLOPT_RETURNTRANSFER, true);
+		curl_exec($c);
+
+		if (!curl_errno($c)) {
+			$st = curl_getinfo($c, CURLINFO_HTTP_CODE);
+			$ret = $this->httpStatusOk((int)$st);
+		}
+
+		curl_close($c);
+
+		return $ret;
 	}
 }
 

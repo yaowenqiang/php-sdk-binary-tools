@@ -31,7 +31,7 @@ class Training
 		$url_list_fn = $this->t_case->getJobFilename();
 		$a = file($url_list_fn, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
-		$stat = array("http_code" => array(), "non_200_stats" => array());
+		$stat = array("http_code" => array(), "not_ok" => array());
 
 		for ($k = 0; $k < $max_runs; $k++) {
 			echo ".";
@@ -80,8 +80,8 @@ class Training
 					$stat["http_code"][$http_code] = 1;
 				}
 
-				if (200 != $http_code) {
-					$stat["non_200_stats"][] = $info;
+				if (!$this->t_case->httpStatusOk((int)$http_code)) {
+					$stat["not_ok"][] = $info;
 				}
 
 				curl_close($h);
