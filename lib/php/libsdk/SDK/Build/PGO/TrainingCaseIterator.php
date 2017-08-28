@@ -41,12 +41,12 @@ class TrainingCaseIterator implements \Iterator
 
 	}
 
-	protected function isInactive(string $base)
+	protected function isInactive(string $base) : bool
 	{
 		return file_exists($base . DIRECTORY_SEPARATOR . "inactive";
 	}
 
-	protected function getHandlerFilename(string $base)
+	protected function getHandlerFilename(string $base) : string
 	{
 		return $base . DIRECTORY_SEPARATOR . "TrainingCaseHandler.php";
 	}
