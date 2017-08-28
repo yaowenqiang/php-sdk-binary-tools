@@ -30,7 +30,7 @@ class TrainingCaseIterator implements \Iterator
 				continue;
 			}
 
-			if ($this->isInactive($it))) {
+			if ($this->isInactive($it)) {
 				echo "The test case in '$it' is marked inactive.\n";
 				continue;
 			}
