@@ -30,10 +30,20 @@ class TrainingCaseIterator implements \Iterator
 				continue;
 			}
 
+			if ($this->isInactive($it))) {
+				echo "The test case in '$it' is marked inactive.\n";
+				continue;
+			}
+
 			$this->items[] = $it;
 		}
 
 
+	}
+
+	protected function isInactive(string $base)
+	{
+		return file_exists($base . DIRECTORY_SEPARATOR . "inactive";
 	}
 
 	protected function getHandlerFilename(string $base)
