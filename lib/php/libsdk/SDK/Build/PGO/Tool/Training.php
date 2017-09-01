@@ -82,6 +82,8 @@ class Training
 
 				if (!$this->t_case->httpStatusOk((int)$http_code)) {
 					$stat["not_ok"][] = $info;
+
+					//echo curl_multi_getcontent($h) ;
 				}
 
 				curl_close($h);
