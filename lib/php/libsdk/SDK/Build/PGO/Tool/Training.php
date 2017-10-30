@@ -29,6 +29,11 @@ class Training
 	public function runWeb(int $max_runs, ?array &$stat = array()) : void
 	{
 		$url_list_fn = $this->t_case->getJobFilename();
+
+		if (!file_exists($url_list_fn)) {
+			printf("\033[31m WARNING: Job file '$url_list_fn' not found!\033[0m\n");
+		}
+
 		$a = file($url_list_fn, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
 		$stat = array("http_code" => array(), "not_ok" => array());
