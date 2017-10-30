@@ -99,11 +99,12 @@ function usage(int $code = -1)
 	echo "PHP SDK PGO training tool.", PHP_EOL;
 	echo "Usage: ", PHP_EOL, PHP_EOL;
 	echo "Commands:", PHP_EOL;
-	echo "  -i --init  Initialize training environment.", PHP_EOL;
-	echo "  -t --train Run training. This involves startup, training and shutdown.", PHP_EOL;
-	echo "  -u --up    Startup training environment.", PHP_EOL;
-	echo "  -d --down  Shutdown training environment.", PHP_EOL;
-	echo "  -f --force Force requested operation. Not every option can be forced.", PHP_EOL;
+	echo "  -i --init     Initialize training environment.", PHP_EOL;
+	echo "  -t --train    Run training. This involves startup, training and shutdown.", PHP_EOL;
+	echo "  -u --up       Startup training environment.", PHP_EOL;
+	echo "  -d --down     Shutdown training environment.", PHP_EOL;
+	echo "  -f --force    Force requested operation. Not every option can be forced.", PHP_EOL;
+	echo "  -s --scenario Run training with a specified scenario.", PHP_EOL;
 
 	/*echo "  -p --php-root  PHP binary to train.", PHP_EOL;*/
 
